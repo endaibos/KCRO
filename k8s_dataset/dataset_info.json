@@ -1,0 +1,71 @@
+{
+  "citation": "",
+  "description": "",
+  "features": {
+    "content": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "tool": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "repo_full_name": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "repo_sub_path": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "hash_author_repo": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "kind": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "metadata_name": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "metadata_namespace": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "container_images": {
+      "feature": {
+        "dtype": "string",
+        "_type": "Value"
+      },
+      "_type": "List"
+    },
+    "gh_stars": {
+      "dtype": "float64",
+      "_type": "Value"
+    },
+    "gh_forks": {
+      "dtype": "float64",
+      "_type": "Value"
+    },
+    "gh_language": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "gh_created_at": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "gh_pushed_at": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "gh_open_issues": {
+      "dtype": "float64",
+      "_type": "Value"
+    }
+  },
+  "homepage": "",
+  "license": ""
+}
