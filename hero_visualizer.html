@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>KCRO Attack Path Visualizer</title>
+  <script src="https://unpkg.com/three-spritetext"></script>
+  <script src="https://unpkg.com/3d-force-graph"></script>
+  <style>
+    body { margin: 0; padding: 0; background-color: #0d1117; overflow: hidden;
+           font-family: monospace; color: #c9d1d9; }
+    #graph-container { width: 100vw; height: 100vh; }
+    .panel { position: absolute; z-index: 10; background: rgba(13, 17, 23, 0.9);
+             border: 1px solid #30363d; border-radius: 6px; padding: 14px; }
+    #controls { top: 16px; left: 16px; width: 380px; }
+    #legend  { bottom: 16px; left: 16px; }
+    h1 { margin: 0 0 4px 0; font-size: 1.1rem; color: #58a6ff; }
+    .sub { margin: 0 0 12px 0; font-size: 0.8rem; color: #8b949e; }
+    label { display: block; font-size: 0.75rem; color: #8b949e; margin: 10px 0 4px; }
+    select, textarea, button {
+      width: 100%; box-sizing: border-box; background: #0d1117; color: #c9d1d9;
+      border: 1px solid #30363d; border-radius: 4px; padding: 6px; font-family: monospace;
+      font-size: 0.78rem; }
+    textarea { height: 150px; resize: vertical; white-space: pre; overflow-wrap: normal;
+               overflow-x: auto; }
+    button { margin-top: 10px; cursor: pointer; background: #238636; border-color: #2ea043;
+             color: #fff; font-weight: bold; padding: 8px; }
+    button:hover { background: #2ea043; }
+    #status { margin-top: 8px; font-size: 0.72rem; color: #8b949e; min-height: 1em; }
+    .dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%;
+           margin-right: 7px; vertical-align: middle; }
+    .legend-row { font-size: 0.78rem; margin: 4px 0; }
+  </style>
+</head>
+<body>
+  <div id="controls" class="panel">
+    <h1>KCRO Multi-Hop Exploit Chain</h1>
+    <p class="sub">Live SPARQL over the KCRO abox &middot; Vulnerability &rarr; Relator &rarr; Asset</p>
+    <p class="sub">Full graph (all 208k): <a href="/full2d" style="color:#58a6ff">2D GPU</a> &middot; <a href="/full3d" style="color:#58a6ff">3D cloud</a></p>
+
+    <label for="cq">Competency question (CONSTRUCT)</label>
+    <select id="cq"></select>
+
+    <label for="pod">Focus Pod (most-connected first)</label>
+    <select id="pod"><option>loading&hellip;</option></select>
+
+    <label for="query">SPARQL &mdash; edit freely, then Run</label>
+    <textarea id="query" spellcheck="false"></textarea>
+
+    <button id="run">&#9654; Run query</button>
+    <div id="status"></div>
+  </div>
+
+  <div id="legend" class="panel">
+    <div class="legend-row"><span class="dot" style="background:#ff7b72"></span>Vulnerability (aspect, inheresIn)</div>
+    <div class="legend-row"><span class="dot" style="background:#d2a8ff"></span>Relator (mediates)</div>
+    <div class="legend-row"><span class="dot" style="background:#58a6ff"></span>Object (Pod / Service / asset)</div>
+  </div>
+
+  <div id="graph-container"></div>
+
+  <script>
+    const colorMap = { Object: "#58a6ff", Relator: "#d2a8ff", Vulnerability: "#ff7b72" };
+
+    // --- Competency-question templates. {{POD}} is substituted with the chosen Pod IRI.
+    const QUERIES = {
+      "CQ3 — 2-hop exploit chain around a Pod":
+`CONSTRUCT {
+  ?aspect gufo:inheresIn <{{POD}}> .
+  ?relator gufo:mediates <{{POD}}> .
+  ?relator gufo:mediates ?asset .
+} WHERE {
+  { ?aspect gufo:inheresIn <{{POD}}> . }
+  UNION
+  { ?relator gufo:mediates <{{POD}}> .
+    OPTIONAL { ?relator gufo:mediates ?asset .
+               FILTER(?asset != <{{POD}}>) } }
+}`,
+      "Vulnerabilities inhering in a Pod":
+`CONSTRUCT { ?aspect gufo:inheresIn <{{POD}}> . }
+WHERE      { ?aspect gufo:inheresIn <{{POD}}> . }`,
+      "Assets reachable from a Pod via relators":
+`CONSTRUCT {
+  ?relator gufo:mediates <{{POD}}> .
+  ?relator gufo:mediates ?asset .
+} WHERE {
+  ?relator gufo:mediates <{{POD}}> .
+  ?relator gufo:mediates ?asset .
+  FILTER(?asset != <{{POD}}>)
+}`
+    };
+
+    // Sentinel for the whole-dataset mode (served by /overview, not /graph).
+    const OVERVIEW = "🌐 Whole dataset — class-level overview";
+    const OVERVIEW_SPARQL =
+`# Aggregation over ALL ~530k triples (read-only).
+# Every instance edge is collapsed onto the rdf:type of its endpoints:
+SELECT ?sType ?p ?oType (COUNT(*) AS ?weight) WHERE {
+  ?s ?p ?o .
+  FILTER(?p IN (gufo:inheresIn, gufo:mediates, gufo:isProperPartOf))
+  ?s a ?sType . ?o a ?oType .
+} GROUP BY ?sType ?p ?oType`;
+
+    const $ = id => document.getElementById(id);
+    let currentPod = null;
+
+    const Graph = ForceGraph3D()(document.getElementById('graph-container'))
+      .nodeLabel('label')
+      .nodeColor(n => colorMap[n.group] || "#ffffff")
+      .nodeRelSize(6)
+      .nodeVal(n => n.count ? Math.log10(n.count + 1) * 4 : 1)
+      .nodeThreeObject(n => {
+        if (typeof SpriteText === 'undefined') return false; // fall back to spheres
+        const s = new SpriteText(n.label);
+        s.color = colorMap[n.group] || "#ffffff";
+        s.textHeight = 4;
+        return s;
+      })
+      .nodeThreeObjectExtend(true)
+      .linkLabel(l => l.weight ? `${l.label} (${l.weight.toLocaleString()})` : l.label)
+      .linkOpacity(0.5)
+      .linkWidth(l => l.weight ? Math.log10(l.weight + 1) : 1.2)
+      .linkColor(() => '#8b949e')
+      .linkDirectionalArrowLength(3.5)
+      .linkDirectionalArrowRelPos(1)
+      .linkDirectionalParticles(2)
+      .linkDirectionalParticleSpeed(0.005)
+      .onNodeClick(node => {
+        const distance = 60;
+        const r = 1 + distance / Math.hypot(node.x, node.y, node.z);
+        Graph.cameraPosition({ x: node.x * r, y: node.y * r, z: node.z * r }, node, 2500);
+      });
+
+    function isOverview() { return $('cq').value === OVERVIEW; }
+
+    function buildQuery() {
+      const overview = isOverview();
+      $('pod').disabled = overview;
+      $('query').readOnly = overview;
+      if (overview) {
+        $('query').value = OVERVIEW_SPARQL;
+        return;
+      }
+      const tmpl = QUERIES[$('cq').value];
+      $('query').value = currentPod ? tmpl.replaceAll('{{POD}}', currentPod) : tmpl;
+    }
+
+    async function run() {
+      const status = $('status');
+      status.textContent = isOverview() ? 'Aggregating all ~530k triples…' : 'Running query…';
+      try {
+        const data = isOverview()
+          ? await fetch('/overview').then(r => r.json())
+          : await fetch('/graph', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ sparql: $('query').value })
+            }).then(r => r.json());
+        if (data.error) { status.textContent = '⚠ ' + data.error; return; }
+        Graph.graphData(data);
+        status.textContent = `${data.nodes.length} nodes · ${data.links.length} edges`
+          + (isOverview() ? ' (class-level summary of the full graph)' : '');
+      } catch (e) {
+        status.textContent = '⚠ ' + e.message;
+      }
+    }
+
+    async function init() {
+      [OVERVIEW, ...Object.keys(QUERIES)].forEach(k => {
+        const o = document.createElement('option'); o.value = o.textContent = k; $('cq').appendChild(o);
+      });
+
+      // Populate the Pod picker from the server.
+      const pods = await fetch('/pods?min=15&limit=60').then(r => r.json());
+      const sel = $('pod');
+      sel.innerHTML = '';
+      pods.forEach(p => {
+        const o = document.createElement('option');
+        o.value = p.id; o.textContent = `${p.label}  (${p.degree})`;
+        sel.appendChild(o);
+      });
+      currentPod = pods.length ? pods[0].id : null;
+
+      $('cq').onchange = buildQuery;
+      $('pod').onchange = e => { currentPod = e.target.value; buildQuery(); };
+      $('run').onclick = run;
+
+      buildQuery();
+      run(); // render the first exploit chain immediately
+    }
+
+    init();
+  </script>
+</body>
+</html>
