@@ -3,25 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <title>KCRO — Full Graph (208k, Cosmos GPU)</title>
+  <!--
+    Server endpoints expected (same origin):
+      GET  /full                 -> { count, groups, ids, links }   (unchanged)
+      GET  /node?id=<localname>  -> node detail JSON                (unchanged)
+      POST /sparql {query}       -> { vars, rows, error? }          (NEW — see sparql_route.py)
+      GET/POST /positions        -> saved layout Float32Array JSON  (NEW, optional)
+  -->
   <style>
     html, body { margin: 0; height: 100%; background: #0d1117; overflow: hidden;
                  font-family: monospace; color: #c9d1d9; }
     #graph { width: 100vw; height: 100vh; }
-    .panel { position: absolute; z-index: 10; background: rgba(13,17,23,0.9);
+    .panel { position: absolute; z-index: 10; background: rgba(13,17,23,0.92);
              border: 1px solid #30363d; border-radius: 6px; padding: 12px 14px; }
     #info { top: 16px; left: 16px; max-width: 360px; }
     #legend { bottom: 16px; left: 16px; }
-    #details { top: 16px; right: 16px; width: 320px; max-height: calc(100vh - 32px);
+    #details { top: 16px; right: 16px; width: 340px; max-height: calc(55vh);
                overflow-y: auto; display: none; }
     #details h2 { margin: 0 0 2px; font-size: 0.95rem; color: #e3b341; word-break: break-all; }
     #details .typ { font-size: 0.75rem; color: #8b949e; margin-bottom: 8px; }
-    #details .sec { font-size: 0.72rem; color: #58a6ff; margin: 10px 0 3px;
-                    text-transform: uppercase; letter-spacing: 0.05em; }
+    .sec { font-size: 0.72rem; color: #58a6ff; margin: 10px 0 3px;
+           text-transform: uppercase; letter-spacing: 0.05em; }
     #details .edge { font-size: 0.76rem; margin: 2px 0; word-break: break-all; }
     #details .edge .p { color: #d2a8ff; }
     #details .key { font-size: 0.74rem; color: #7ee787; word-break: break-all; }
-    #details .close { float: right; cursor: pointer; color: #8b949e; }
-    #details .close:hover { color: #fff; }
+    .close { float: right; cursor: pointer; color: #8b949e; }
+    .close:hover { color: #fff; }
     h1 { margin: 0 0 4px; font-size: 1.05rem; color: #58a6ff; }
     .sub { margin: 0; font-size: 0.78rem; color: #8b949e; }
     #status { margin-top: 8px; font-size: 0.75rem; color: #8b949e; }
@@ -30,27 +37,60 @@
     .legend-row { font-size: 0.78rem; margin: 3px 0; }
     .dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%;
            margin-right: 7px; vertical-align: middle; }
-    button { margin-top: 8px; background: #21262d; color: #c9d1d9; border: 1px solid #30363d;
+    button { margin: 8px 4px 0 0; background: #21262d; color: #c9d1d9; border: 1px solid #30363d;
              border-radius: 4px; padding: 5px 9px; font-family: monospace; cursor: pointer; }
     button:hover { background: #30363d; }
+    input, select, textarea { width: 100%; box-sizing: border-box; background: #0d1117;
+             border: 1px solid #30363d; border-radius: 4px; color: #c9d1d9;
+             padding: 5px 7px; font-family: monospace; font-size: 0.78rem; }
+    input { margin-top: 8px; }
+    /* ---- SPARQL panel ---- */
+    #sparql { bottom: 16px; right: 16px; width: 480px; max-height: calc(45vh); overflow-y: auto; }
+    #sparql.collapsed #sparqlBody { display: none; }
+    #sparql h1 { font-size: 0.9rem; cursor: pointer; user-select: none; }
+    #sparql textarea { height: 130px; margin-top: 6px; white-space: pre; resize: vertical; }
+    #sqlStatus { font-size: 0.75rem; margin-top: 6px; color: #8b949e; min-height: 1em; }
+    #sqlResults { margin-top: 6px; max-height: 180px; overflow: auto; }
+    #sqlResults table { border-collapse: collapse; font-size: 0.72rem; width: 100%; }
+    #sqlResults th, #sqlResults td { border: 1px solid #30363d; padding: 2px 5px;
+             text-align: left; word-break: break-all; }
+    #sqlResults th { color: #58a6ff; }
+    #sqlResults tr.hl { cursor: pointer; } #sqlResults tr.hl:hover { background: #1c2128; }
   </style>
 </head>
 <body>
   <div id="info" class="panel">
     <h1>KCRO — Full Instance Graph</h1>
-    <p class="sub">All 208,281 nodes &middot; 195,816 edges &middot; live GPU force layout (Cosmos)</p>
+    <p class="sub">Live GPU force layout (Cosmos) over the instantiated ABox</p>
+    <input id="search" placeholder="find node… (Enter cycles matches)">
     <div id="status">Loading…</div>
     <div id="hover"></div>
-    <p class="sub" style="margin-top:6px">Hover for name &middot; <b>click a node</b> for details</p>
-    <button id="pause">⏸ Pause layout</button>
-    <button id="fit">⤢ Fit view</button>
+    <p class="sub" style="margin-top:6px">Hover for name &middot; <b>click a node</b> to highlight its neighbourhood</p>
+    <button id="pause">⏸ Pause layout</button><button id="fit">⤢ Fit view</button><button id="edges">⛓ Edges</button><button id="save">💾 Save layout</button><button id="clear">✕ Clear highlight</button>
   </div>
   <div id="legend" class="panel">
     <div class="legend-row"><span class="dot" style="background:#ff7b72"></span>Vulnerability</div>
     <div class="legend-row"><span class="dot" style="background:#d2a8ff"></span>Relator</div>
     <div class="legend-row"><span class="dot" style="background:#58a6ff"></span>Object</div>
+    <!-- when the server starts distinguishing groups 3/4, add:
+         omission #ffa657 / commission #ff7b72 / quality #7ee787 and extend RGBA below -->
   </div>
   <div id="details" class="panel"></div>
+
+  <!-- ============ SPARQL panel: predefined CQs + free-form queries ============ -->
+  <div id="sparql" class="panel">
+    <h1 id="sparqlToggle">SPARQL — competency questions ▾</h1>
+    <div id="sparqlBody">
+      <div class="sec">predefined CQ</div>
+      <select id="cqSelect"></select>
+      <textarea id="sqlText" spellcheck="false"></textarea>
+      <button id="run">▶ Run</button>
+      <button id="hlBtn">◎ Highlight results</button>
+      <div id="sqlStatus"></div>
+      <div id="sqlResults"></div>
+    </div>
+  </div>
+
   <div id="graph"></div>
 
   <script type="module">
@@ -62,18 +102,105 @@
       2: [1.0, 0.482, 0.447, 1.0],   // Vuln     #ff7b72
     };
 
+    const PREFIXES =
+`PREFIX kcro: <https://w3id.org/kcro#>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+`;
+    // The twelve thesis CQs in final KCRO vocabulary (same as the defense site).
+    const CQS = {
+      "CQ1 — privileged containers":
+`SELECT ?container WHERE {
+  ?v a kcro:PrivilegedContainer ; gufo:inheresIn ?container .
+  ?container a kcro:Container .
+} LIMIT 500`,
+      "CQ2 — containers without resource limits":
+`SELECT ?pod ?container WHERE {
+  ?v a kcro:AbsentResourceLimit ; gufo:inheresIn ?container .
+  ?container gufo:isProperPartOf ?pod .
+} LIMIT 500`,
+      "CQ3 — pods on the default ServiceAccount":
+`SELECT ?pod WHERE {
+  ?v a kcro:DefaultServiceAccount ; gufo:inheresIn ?pod .
+  ?pod a kcro:Pod .
+} LIMIT 500`,
+      "CQ4 — unpinned image tags":
+`SELECT ?container ?tagStatus WHERE {
+  ?q gufo:inheresIn ?container ; a ?tagStatus .
+  VALUES ?tagStatus { kcro:ImageTagLatest kcro:ImageTagMissing }
+} LIMIT 500`,
+      "CQ5 — wildcard RBAC rules":
+`SELECT ?role ?kind WHERE {
+  ?v gufo:inheresIn ?role ; a ?kind .
+  VALUES ?kind { kcro:WildcardVerbs kcro:WildcardResources kcro:WildcardAPIGroups }
+  ?role a ?rt . VALUES ?rt { kcro:Role kcro:ClusterRole }
+} LIMIT 500`,
+      "CQ6 — cluster-admin bindings to ServiceAccounts":
+`SELECT ?binding ?sa WHERE {
+  ?v a kcro:ClusterAdminBinding ; gufo:inheresIn ?binding .
+  ?binding gufo:mediates ?sa .
+  ?sa a kcro:ServiceAccount .
+} LIMIT 500`,
+      "CQ7 — externally exposed Services":
+`SELECT ?service ?level WHERE {
+  ?q gufo:inheresIn ?service ; a ?level .
+  VALUES ?level { kcro:NodePortExposure kcro:LoadBalancerExposure kcro:ExternalNameExposure }
+  ?service a kcro:Service .
+} LIMIT 500`,
+      "CQ8 — Ingresses without TLS":
+`SELECT ?ingress WHERE {
+  ?v a kcro:AbsentIngressTLS ; gufo:inheresIn ?ingress .
+  ?ingress a kcro:Ingress .
+} LIMIT 500`,
+      "CQ9 — privileged AND externally reachable":
+`SELECT ?container ?service WHERE {
+  ?exp gufo:inheresIn ?service ; a ?lvl .
+  VALUES ?lvl { kcro:NodePortExposure kcro:LoadBalancerExposure }
+  ?sr a kcro:ServiceRouting ; gufo:mediates ?service, ?pod . ?pod a kcro:Pod .
+  ?container gufo:isProperPartOf ?pod .
+  ?pv a kcro:PrivilegedContainer ; gufo:inheresIn ?container .
+} LIMIT 500`,
+      "CQ10 — Secret-mounting pods behind exposed Services":
+`SELECT ?pod ?secret WHERE {
+  ?vm a kcro:VolumeMount ; gufo:mediates ?pod, ?secret . ?secret a kcro:Secret .
+  ?sr a kcro:ServiceRouting ; gufo:mediates ?service, ?pod .
+  ?exp gufo:inheresIn ?service ; a ?lvl .
+  VALUES ?lvl { kcro:NodePortExposure kcro:LoadBalancerExposure }
+} LIMIT 500`,
+      "CQ11 — SAs of privileged pods with wildcard roles":
+`SELECT DISTINCT ?sa WHERE {
+  ?ia a kcro:IdentityAssignment ; gufo:mediates ?pod, ?sa . ?sa a kcro:ServiceAccount .
+  ?container gufo:isProperPartOf ?pod .
+  ?pv a kcro:PrivilegedContainer ; gufo:inheresIn ?container .
+  ?rb gufo:mediates ?sa, ?role .
+  ?role a ?rt . VALUES ?rt { kcro:Role kcro:ClusterRole }
+  ?wv gufo:inheresIn ?role ; a ?w .
+  VALUES ?w { kcro:WildcardVerbs kcro:WildcardResources kcro:WildcardAPIGroups }
+} LIMIT 500`,
+      "CQ12 — provenance (requires extension, expect empty)":
+`SELECT ?repo ?stars WHERE {
+  ?pv a kcro:PrivilegedContainer ; gufo:inheresIn ?container .
+  ?container prov:wasDerivedFrom ?repo .
+  ?repo a kcro:Repository ; kcro:repoStars ?stars .
+} LIMIT 500`,
+      "Custom query…": ""
+    };
+
     const $ = id => document.getElementById(id);
     const status = $('status');
+    const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+    const ok = r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r; };
 
     (async () => {
-      status.textContent = 'Fetching 208k-node topology…';
-      const data = await fetch('/full').then(r => r.json());
+      status.textContent = 'Fetching topology…';
+      const data = await fetch('/full').then(ok).then(r => r.json());
       const n = data.count;
       const groups = data.groups;
       const ids = data.ids;
+      const idIndex = new Map(ids.map((id, i) => [id, i]));   // localname -> point index
 
-      // The simulation space is capped by the GPU's max texture size. Probe it
-      // (16384 on an M3 Max) so we use the largest area this machine allows.
+      // Simulation space capped by the GPU's max texture size.
       const maxTexSize = (() => {
         try {
           const gl = document.createElement('canvas').getContext('webgl2')
@@ -81,88 +208,161 @@
           return gl ? gl.getParameter(gl.MAX_TEXTURE_SIZE) : 8192;
         } catch { return 8192; }
       })();
-      const space = Math.min(maxTexSize, 16384);
-      console.log('GPU max texture size:', maxTexSize, '→ spaceSize:', space);
+      const space = Math.min(maxTexSize, 16384);   // cap at 16384 (matches GPUs probed so far)
 
-      // Random initial positions scattered across the full space.
-      const positions = new Float32Array(n * 2);
-      for (let i = 0; i < n; i++) {
-        positions[2 * i]     = Math.random() * space;
-        positions[2 * i + 1] = Math.random() * space;
+      // Initial positions: saved layout if the server has one, else random scatter.
+      let positions = null, restored = false;
+      try {
+        const saved = await fetch('/positions').then(r => r.ok ? r.json() : null);
+        if (saved && saved.positions && saved.positions.length === n * 2) {
+          positions = Float32Array.from(saved.positions); restored = true;
+        }
+      } catch { /* no saved layout */ }
+      if (!positions) {
+        positions = new Float32Array(n * 2);
+        for (let i = 0; i < n; i++) {
+          positions[2 * i]     = Math.random() * space;
+          positions[2 * i + 1] = Math.random() * space;
+        }
       }
-      // Per-point colors and sizes from gUFO group.
-      const colors = new Float32Array(n * 4);
-      const sizes = new Float32Array(n);
-      for (let i = 0; i < n; i++) {
-        const c = RGBA[groups[i]] || RGBA[0];
-        colors.set(c, i * 4);
-        sizes[i] = groups[i] === 2 ? 4.0 : 3.0; // vulnerabilities a touch larger
-      }
-      // Links are already a flat [s,t,s,t,...] integer array -> Float32Array.
+
       const links = Float32Array.from(data.links);
 
+      // Degree-based sizes: hubs (shared images, busy services) stand out.
+      const deg = new Float32Array(n);
+      for (let k = 0; k < links.length; k++) deg[links[k]]++;
+      const sizes = new Float32Array(n);
+      for (let i = 0; i < n; i++) sizes[i] = 2 + Math.log2(1 + deg[i]) * 1.3;
+
+      // Base colors from gUFO group (kept so highlights can restore them).
+      const baseColors = new Float32Array(n * 4);
+      for (let i = 0; i < n; i++) baseColors.set(RGBA[groups[i]] || RGBA[0], i * 4);
+
+      // Adjacency for ego-network highlighting (built once, ~2x edge count ints).
+      const adj = Array.from({ length: n }, () => []);
+      for (let k = 0; k < links.length; k += 2) {
+        adj[links[k]].push(links[k + 1]); adj[links[k + 1]].push(links[k]);
+      }
+
       const config = {
-        spaceSize: space,              // 8192 = GPU grid cap; raise initial scatter instead
+        spaceSize: space,
         backgroundColor: '#0d1117',
         simulationFriction: 0.85,
-        // Gravity must balance repulsion, or clusters flee to the walls and pile
-        // up at the edges. This pair gives a wide-but-self-centering spread.
-        simulationGravity: 0.1,
+        simulationGravity: 0.1,        // balances repulsion: wide but self-centering
         simulationRepulsion: 1.3,
-        simulationLinkSpring: 1.2,     // keep each cluster tight while it spreads
+        simulationLinkSpring: 1.2,
         simulationLinkDistance: 10,
-        linkColor: '#3d5a80',          // visible blue-grey edges
+        linkColor: '#3d5a80',
         linkWidth: 0.5,
         linkArrows: false,
         linkVisibilityDistanceRange: [0, 100000],
         linkVisibilityMinTransparency: 0.25,
         pointSizeScale: 1.4,
-        scalePointsOnZoom: true,       // nodes grow as you zoom in
+        scalePointsOnZoom: true,
         fitViewOnInit: true,
-        fitViewDelay: 1500,
+        fitViewDelay: restored ? 200 : 1500,
         enableDrag: false,
         onClick: (index) => { if (index != null) showDetails(index); },
-        onPointMouseOver: (index) => {
-          if (index != null) $('hover').textContent = ids[index];
-        },
+        onPointMouseOver: (index) => { if (index != null) $('hover').textContent = ids[index]; },
+        onSimulationEnd: () => setPaused(true),   // natural settle (timer below is the fallback)
       };
 
       const graph = new Graph($('graph'), config);
       graph.setPointPositions(positions);
-      graph.setPointColors(colors);
+      graph.setPointColors(baseColors);
       if (graph.setPointSizes) graph.setPointSizes(sizes);
       graph.setLinks(links);
       graph.render();
+      if (restored) graph.pause?.();   // saved layout: no need to re-simulate
 
       const edgeCount = (links.length / 2).toLocaleString();
-      status.textContent = `${n.toLocaleString()} nodes · ${edgeCount} edges · settling layout…`;
+      status.textContent = `${n.toLocaleString()} nodes · ${edgeCount} edges · ` +
+        (restored ? 'layout restored' : 'settling layout…');
 
-      // Let the galaxy spread, then freeze it so it stays fixed (resume to re-spread).
-      let paused = false;
-      const setPaused = p => {
+      // ---- pause / settle -------------------------------------------------
+      let paused = restored;
+      function setPaused(p) {
         paused = p;
         if (p) { graph.pause?.(); $('pause').textContent = '▶ Resume layout'; }
         else { graph.start?.(); graph.restart?.(); $('pause').textContent = '⏸ Pause layout'; }
-      };
+      }
       const SETTLE_MS = 12000;
-      const settleTimer = setTimeout(() => {
+      const settleTimer = restored ? null : setTimeout(() => {
         setPaused(true);
         status.textContent = `${n.toLocaleString()} nodes · ${edgeCount} edges · layout frozen`;
       }, SETTLE_MS);
+      $('pause').onclick = () => { if (settleTimer) clearTimeout(settleTimer); setPaused(!paused); };
+      $('fit').onclick = () => graph.fitView?.();
 
-      // Click a node -> fetch full detail from the graph and render a panel.
+      // ---- edge visibility toggle (big FPS win zoomed out) ----------------
+      let edgesOn = true;
+      $('edges').onclick = () => {
+        edgesOn = !edgesOn;
+        graph.setConfig?.({ linkWidth: edgesOn ? 0.5 : 0 });
+        $('edges').textContent = edgesOn ? '⛓ Edges' : '⛓ Edges (off)';
+      };
+
+      // ---- save layout to the server --------------------------------------
+      $('save').onclick = async () => {
+        try {
+          const pos = graph.getPointPositions?.() || positions;
+          await fetch('/positions', { method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ positions: Array.from(pos) }) }).then(ok);
+          status.textContent = 'layout saved — reloads will restore it';
+        } catch (e) { status.textContent = '⚠ save failed: ' + e.message; }
+      };
+
+      // ---- highlighting ----------------------------------------------------
+      function dimAllExcept(keep) {           // keep: Set of indices at full alpha
+        const c = Float32Array.from(baseColors);
+        for (let i = 0; i < n; i++) if (!keep.has(i)) c[i * 4 + 3] = 0.06;
+        graph.setPointColors(c);
+      }
+      function highlightEgo(index) {
+        const keep = new Set(adj[index]); keep.add(index);
+        dimAllExcept(keep);
+      }
+      function clearHighlight() { graph.setPointColors(baseColors); }
+      $('clear').onclick = clearHighlight;
+
+      // ---- search (Enter cycles through matches) ---------------------------
+      let lastQ = '', matchPos = 0;
+      $('search').addEventListener('keydown', e => {
+        if (e.key !== 'Enter') return;
+        const q = e.target.value.toLowerCase().trim();
+        if (!q) return;
+        if (q !== lastQ) { lastQ = q; matchPos = 0; }
+        let found = -1, seen = 0;
+        for (let i = 0; i < n; i++) {
+          if (ids[i].toLowerCase().includes(q)) {
+            if (seen === matchPos) { found = i; break; }
+            seen++;
+          }
+        }
+        if (found === -1) {
+          if (matchPos > 0) { matchPos = 0; e.target.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' })); }
+          else status.textContent = `no match for "${q}"`;
+          return;
+        }
+        matchPos++;
+        graph.zoomToPointByIndex?.(found, 700, 10);
+        highlightEgo(found);
+        showDetails(found);
+      });
+
+      // ---- details panel ----------------------------------------------------
       const groupName = { 0: 'Object', 1: 'Relator', 2: 'Vulnerability' };
-      const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
       const panel = $('details');
-
       async function showDetails(index) {
+        highlightEgo(index);
         const name = ids[index];
         panel.style.display = 'block';
         panel.innerHTML = `<span class="close">✕</span><h2>${esc(name)}</h2>
           <div class="typ">${groupName[groups[index]]} — loading…</div>`;
-        panel.querySelector('.close').onclick = () => { panel.style.display = 'none'; };
+        panel.querySelector('.close').onclick = () => { panel.style.display = 'none'; clearHighlight(); };
         try {
-          const d = await fetch('/node?id=' + encodeURIComponent(name)).then(r => r.json());
+          const d = await fetch('/node?id=' + encodeURIComponent(name)).then(ok).then(r => r.json());
           if (d.error) { panel.querySelector('.typ').textContent = '⚠ ' + d.error; return; }
           const edges = (arr, dir) => arr.length
             ? arr.map(e => `<div class="edge">${dir === 'out'
@@ -171,23 +371,76 @@
             : '<div class="edge" style="color:#8b949e">none</div>';
           panel.innerHTML = `<span class="close">✕</span>
             <h2>${esc(d.id)}</h2>
-            <div class="typ">${(d.types[0] || groupName[groups[index]])} · ${groupName[groups[index]]}</div>
+            <div class="typ">${esc(d.types?.[0] || groupName[groups[index]])} · ${groupName[groups[index]]}</div>
             ${d.datasetKey ? `<div class="sec">dataset key</div><div class="key">${esc(d.datasetKey)}</div>` : ''}
             <div class="sec">outgoing (${d.outCount})</div>${edges(d.out, 'out')}
             <div class="sec">incoming (${d.inCount})</div>${edges(d.in, 'in')}`;
-          panel.querySelector('.close').onclick = () => { panel.style.display = 'none'; };
-          // Zoom to the clicked node if Cosmos exposes it (best-effort).
+          panel.querySelector('.close').onclick = () => { panel.style.display = 'none'; clearHighlight(); };
           graph.zoomToPointByIndex?.(index, 800, 8);
         } catch (e) {
           panel.querySelector('.typ').textContent = '⚠ ' + e.message;
         }
       }
 
-      $('pause').onclick = () => {
-        clearTimeout(settleTimer);   // manual control cancels the auto-freeze
-        setPaused(!paused);
+      // ================== SPARQL panel ==================
+      const sel = $('cqSelect');
+      for (const name of Object.keys(CQS)) {
+        const o = document.createElement('option'); o.textContent = name; sel.appendChild(o);
+      }
+      const loadCQ = () => { $('sqlText').value = PREFIXES + (CQS[sel.value] || ''); };
+      sel.onchange = loadCQ; loadCQ();
+      $('sparqlToggle').onclick = () => $('sparql').classList.toggle('collapsed');
+
+      let lastResultIndices = new Set();
+      const localname = v => v.includes('#') ? v.split('#').pop() : v.split('/').pop();
+
+      async function runQuery() {
+        const q = $('sqlText').value;
+        $('sqlStatus').textContent = 'running…'; $('sqlResults').innerHTML = '';
+        lastResultIndices = new Set();
+        try {
+          const res = await fetch('/sparql', { method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: q }) }).then(ok).then(r => r.json());
+          if (res.error) { $('sqlStatus').textContent = '⚠ ' + res.error; return; }
+          const rows = res.rows || [];
+          // collect graph indices for any IRI binding that names an ABox node
+          for (const row of rows) for (const v of row) {
+            if (typeof v === 'string' && v.startsWith('http')) {
+              const i = idIndex.get(localname(v));
+              if (i !== undefined) lastResultIndices.add(i);
+            }
+          }
+          $('sqlStatus').textContent =
+            `${rows.length} row(s)` +
+            (rows.length >= 500 ? ' (capped)' : '') +
+            ` · ${lastResultIndices.size} node(s) on graph`;
+          if (!rows.length) return;
+          const shown = rows.slice(0, 200);
+          const head = `<tr>${(res.vars || []).map(v => `<th>?${esc(v)}</th>`).join('')}</tr>`;
+          const body = shown.map(row => {
+            const cells = row.map(v => `<td>${esc(typeof v === 'string' ? localname(v) : v)}</td>`).join('');
+            const first = row.find(v => typeof v === 'string' && idIndex.has(localname(v)));
+            const idx = first !== undefined ? idIndex.get(localname(first)) : null;
+            return `<tr class="${idx !== null ? 'hl' : ''}" data-i="${idx ?? ''}">${cells}</tr>`;
+          }).join('');
+          $('sqlResults').innerHTML = `<table>${head}${body}</table>` +
+            (rows.length > 200 ? `<div class="sub" style="margin-top:4px">…showing 200 of ${rows.length}</div>` : '');
+          // click a result row -> zoom to that node
+          $('sqlResults').querySelectorAll('tr.hl').forEach(tr => {
+            tr.onclick = () => { const i = +tr.dataset.i; graph.zoomToPointByIndex?.(i, 700, 10); showDetails(i); };
+          });
+          if (lastResultIndices.size) dimAllExcept(lastResultIndices);
+        } catch (e) { $('sqlStatus').textContent = '⚠ ' + e.message; }
+      }
+      $('run').onclick = runQuery;
+      $('hlBtn').onclick = () => {
+        if (lastResultIndices.size) dimAllExcept(lastResultIndices);
+        else $('sqlStatus').textContent = 'run a query first';
       };
-      $('fit').onclick = () => graph.fitView?.();
+      $('sqlText').addEventListener('keydown', e => {
+        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) runQuery();   // Ctrl+Enter to run
+      });
     })().catch(e => { status.textContent = '⚠ ' + e.message; console.error(e); });
   </script>
 </body>

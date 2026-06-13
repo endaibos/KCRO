@@ -23,7 +23,9 @@ afterwards, so you only pay it once per launch.
 """
 
 import json
+import re
 import sys
+import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs
@@ -231,6 +233,53 @@ def node_details(name: str, limit: int = 60) -> dict:
             "outCount": len(out), "inCount": len(inc)}
 
 
+# ---------------------------------------------------------------- SPARQL panel
+QUERY_LOCK = threading.Lock()            # rdflib's query path is not thread-safe
+ROW_CAP = 500                            # hard cap, mirrors the UI's LIMIT 500
+FORBIDDEN = re.compile(r"\b(INSERT|DELETE|DROP|CLEAR|LOAD|CREATE|MOVE|COPY|ADD)\b", re.I)
+
+
+def run_sparql(query: str) -> dict:
+    """Execute a read-only SELECT/ASK and return {vars, rows} for the SPARQL panel.
+    IRIs come back as full strings; the client reduces them to localnames."""
+    if FORBIDDEN.search(query):
+        return {"error": "read-only endpoint: SELECT/ASK only"}
+    if not query.lstrip().upper().startswith("PREFIX"):
+        query = PREFIXES + query
+    try:
+        with QUERY_LOCK:
+            res = graph.query(query)
+    except Exception as exc:
+        return {"error": f"query error: {exc}"}
+    if res.type == "ASK":
+        return {"vars": ["ask"], "rows": [[bool(res.askAnswer)]]}
+    vars_ = [str(v) for v in (res.vars or [])]
+    rows = []
+    for binding in res:
+        rows.append([None if v is None else str(v) for v in binding])
+        if len(rows) >= ROW_CAP:
+            break
+    return {"vars": vars_, "rows": rows}
+
+
+# ---------------------------------------------------------------- layout store
+POS_FILE = HERE / "layout_positions.json"
+
+
+def save_positions(payload: dict) -> dict:
+    pos = payload.get("positions")
+    if not isinstance(pos, list) or not pos:
+        return {"error": "positions: non-empty list expected"}
+    POS_FILE.write_text(json.dumps({"positions": pos}))
+    return {"saved": len(pos) // 2}
+
+
+def load_positions():
+    if POS_FILE.exists():
+        return json.loads(POS_FILE.read_text())
+    return None
+
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):  # quieter logs
         sys.stderr.write("  %s\n" % (fmt % args))
@@ -276,6 +325,12 @@ class Handler(BaseHTTPRequestHandler):
             self._send(200, overview_cache)
         elif path == "/full":
             self._send(200, full_cache)
+        elif path == "/positions":
+            saved = load_positions()
+            if saved:
+                self._send(200, saved)
+            else:
+                self._send(404, {"error": "no saved layout"})
         elif path == "/node":
             qs = parse_qs(self.path.split("?", 1)[1]) if "?" in self.path else {}
             name = (qs.get("id") or [""])[0]
@@ -296,23 +351,32 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         try:
+            path = self.path.split("?", 1)[0]
             body = self._read_json()
-            sparql = (body.get("sparql") or "").strip()
-            if not sparql:
-                return self._send(400, {"error": "missing 'sparql'"})
-            if not sparql.lstrip().upper().startswith("PREFIX"):
-                sparql = PREFIXES + sparql
 
-            if self.path.startswith("/graph"):
+            if path.startswith("/positions"):
+                return self._send(200, save_positions(body))
+
+            if path.startswith("/sparql"):
+                # SPARQL panel sends {query}; return {vars, rows}.
+                q = (body.get("query") or body.get("sparql") or "").strip()
+                if not q:
+                    return self._send(400, {"error": "missing 'query'"})
+                return self._send(200, run_sparql(q))
+
+            if path.startswith("/graph"):
+                # CONSTRUCT -> force-graph JSON (per-Pod drilldown view).
+                sparql = (body.get("sparql") or body.get("query") or "").strip()
+                if not sparql:
+                    return self._send(400, {"error": "missing 'sparql'"})
+                if not sparql.lstrip().upper().startswith("PREFIX"):
+                    sparql = PREFIXES + sparql
                 result = graph.query(sparql)
                 if result.type != "CONSTRUCT":
                     return self._send(400, {"error": "/graph needs a CONSTRUCT query"})
-                self._send(200, construct_to_forcegraph(result.graph))
-            elif self.path.startswith("/sparql"):
-                out = graph.query(sparql).serialize(format="json")
-                self._send(200, out if isinstance(out, str) else out.decode("utf-8"))
-            else:
-                self._send(404, {"error": "not found"})
+                return self._send(200, construct_to_forcegraph(result.graph))
+
+            self._send(404, {"error": "not found"})
         except Exception as exc:  # surface query errors to the browser console
             self._send(400, {"error": f"{type(exc).__name__}: {exc}"})
 

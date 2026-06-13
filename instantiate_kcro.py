@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 instantiate_kcro.py  —  build the KCRO ABox (knowledge graph) from the KubeObjects corpus.
+Aligned with KCRO v0.3.0.
 
 WHAT IT DOES
     Reads the per-object corpus, applies the KCRO TBox, and emits one RDF individual
@@ -9,6 +10,28 @@ WHAT IT DOES
       * inter-resource references resolved into  gufo:Relator  individuals that mediate
         the two objects involved.
     Output (kcro-abox.ttl) is loaded ALONGSIDE kcro.ttl and queried with SPARQL.
+
+v0.3.0 ALIGNMENT
+    * Bearer choices below mirror the twenty  inheresIn some <Bearer>  restrictions
+      added in v0.3.0 one-to-one (container aspects -> Container, pod aspects -> Pod,
+      RBAC aspects -> Role/ClusterRole, ClusterAdminBinding -> the binding relator,
+      exposure/image-tag qualities -> Service/Container), so HermiT over TBox+ABox
+      can check the instance data.
+    * ClusterAdminBinding matches roleRef.name == "cluster-admin" ONLY, matching the
+      ontology's datasetKey and its CIS 5.1.1 grounding. system:masters is a *group
+      subject* (subjects[].kind == Group), not a roleRef, and is not modelled in
+      v0.3.0 — if survey.py counted it, reconcile there.
+    * EnvReference relators (containers[].envFrom[].configMapRef / .secretRef) are
+      now materialised; they were missing from the 0.2.0 script.
+    * PVC volume references are no longer recorded: KCRO has no PersistentVolumeClaim
+      class (deferred to the stretch scope), so they could never resolve.
+    * Digest-pinned images (name@sha256:...) are recognised explicitly as the safe
+      case: neither ImageTagLatest nor ImageTagMissing.
+    * --verify now counts distinct individuals (the graph deduplicates re-minted
+      IRIs), reports relators mediating fewer than two entities (unresolved corpus
+      references; gUFO expects >= 2), and one wildcard aspect is minted per
+      offending RBAC *rule*, so wildcard counts keep survey.py's occurrence
+      semantics (e.g. 1,684 WildcardVerbs).
 
 WHY NOT security_analysis.json
     That file holds only aggregate counts. A traversable graph needs the individual
@@ -28,12 +51,13 @@ INPUT
 
 import argparse, hashlib, json, sys
 import yaml
-from rdflib import Graph, Namespace, URIRef, Literal, RDF, RDFS, XSD
+from rdflib import Graph, Namespace, URIRef, Literal, RDF, RDFS, OWL
 
 # ---------------------------------------------------------------- namespaces
 KCRO = Namespace("https://w3id.org/kcro#")          # the TBox vocabulary
 GUFO = Namespace("http://purl.org/nemo/gufo#")
 DATA = Namespace("https://w3id.org/kcro/data#")     # the ABox (instances)
+ABOX_IRI = URIRef("https://w3id.org/kcro/data")     # ontology header of the ABox file
 
 # ---------------------------------------------------------------- kind -> KCRO class
 KIND_CLASS = {
@@ -61,20 +85,26 @@ class KCROGraph:
     def __init__(self):
         self.g = Graph()
         self.g.bind("kcro", KCRO); self.g.bind("gufo", GUFO); self.g.bind("", DATA)
+        # ABox ontology header: lets Protege pull in the TBox (and gUFO transitively)
+        self.g.add((ABOX_IRI, RDF.type, OWL.Ontology))
+        self.g.add((ABOX_IRI, OWL.imports, URIRef("https://w3id.org/kcro")))
         # indexes for second-pass reference resolution, scoped per (repo, namespace)
         self.by_name = {}                 # (repo, ns, kind, name) -> IRI
         self.pods_by_label = {}           # (repo, ns) -> [(labels_dict, pod_iri)]
         self.deferred = []                # references to resolve in pass 2
-        self.counts = {}                  # KCRO class -> n  (for --verify)
+        self.counts = {}                  # KCRO class -> n distinct individuals (--verify)
 
     # -- helpers -----------------------------------------------------------
     def add_type(self, indiv, cls):
+        """Type an individual; count it once even if the same IRI is re-minted."""
+        if (indiv, RDF.type, KCRO[cls]) not in self.g:
+            self.counts[cls] = self.counts.get(cls, 0) + 1
         self.g.add((indiv, RDF.type, KCRO[cls]))
-        self.counts[cls] = self.counts.get(cls, 0) + 1
 
-    def aspect(self, bearer, cls, key):
-        """Mint an intrinsic aspect of class `cls` inhering in `bearer`."""
-        a = child_iri(bearer, cls, key)
+    def aspect(self, bearer, cls, key, salt=()):
+        """Mint an intrinsic aspect of class `cls` inhering in `bearer`.
+        `salt` distinguishes multiple occurrences on one bearer (e.g. per RBAC rule)."""
+        a = child_iri(bearer, cls, key, *salt)
         self.add_type(a, cls)
         self.g.add((a, GUFO.inheresIn, bearer))
         self.g.add((a, KCRO.datasetKey, Literal(key)))
@@ -121,6 +151,7 @@ class KCROGraph:
     def _workload(self, repo, ns, owner, kind, doc, spec):
         podspec = self._pod_spec(kind, spec)
         # a workload manages a pod (template); the pod bears the pod-level aspects
+        # (matching the v0.3.0 restrictions: pod-level aspects inhere in a kcro:Pod)
         if kind == "Pod":
             pod = owner
         else:
@@ -152,14 +183,14 @@ class KCROGraph:
         if psc.get("runAsUser") == 0:
             self.aspect(pod, "PodRunAsRoot", "pod.securityContext.runAsUser=0")
 
-        # volumes -> VolumeMount relators (Secret / ConfigMap / PVC)
+        # volumes -> VolumeMount relators (Secret / ConfigMap).
+        # PVC references are NOT recorded: KCRO v0.3.0 has no PersistentVolumeClaim
+        # class (stretch scope), so they could never resolve to an individual.
         for v in podspec.get("volumes", []) or []:
             if "secret" in v:    self.deferred.append(("volume", pod, repo, ns, "Secret", (v["secret"] or {}).get("secretName")))
             if "configMap" in v: self.deferred.append(("volume", pod, repo, ns, "ConfigMap", (v["configMap"] or {}).get("name")))
-            if "persistentVolumeClaim" in v:
-                self.deferred.append(("volume", pod, repo, ns, "PersistentVolumeClaim", (v["persistentVolumeClaim"] or {}).get("claimName")))
 
-        # containers -> container-level aspects + image references
+        # containers -> container-level aspects + image and env references
         for c in podspec.get("containers", []) or []:
             cont = child_iri(pod, "Container", c.get("name", "c"))
             self.add_type(cont, "Container")
@@ -178,6 +209,15 @@ class KCROGraph:
             if not ((c.get("resources") or {}).get("limits")):
                 self.aspect(cont, "AbsentResourceLimit", "container.resources.limits=missing")
             self._image(repo, ns, cont, c.get("image", ""))
+            # envFrom -> EnvReference relators (new in the v0.3.0 script; mirrors
+            # the corpus edges containers[].envFrom[].configMapRef / .secretRef)
+            for src in (c.get("envFrom") or []):
+                if not isinstance(src, dict):
+                    continue
+                if "configMapRef" in src:
+                    self.deferred.append(("env", pod, repo, ns, "ConfigMap", (src["configMapRef"] or {}).get("name")))
+                if "secretRef" in src:
+                    self.deferred.append(("env", pod, repo, ns, "Secret", (src["secretRef"] or {}).get("name")))
 
     def _image(self, repo, ns, cont, image):
         if not image:
@@ -185,11 +225,13 @@ class KCROGraph:
         img_iri = DATA[f"ContainerImage-{_h(image)}"]
         self.add_type(img_iri, "ContainerImage")
         self.g.add((img_iri, RDFS.label, Literal(image)))
-        tag = image.rsplit(":", 1)[1] if (":" in image.rsplit("/", 1)[-1]) else None
-        if tag is None:
-            self.aspect(cont, "ImageTagMissing", "container.image.tag=missing")
-        elif tag == "latest":
-            self.aspect(cont, "ImageTagLatest", "container.image.tag=latest")
+        # digest-pinned (name@sha256:...) is the safe case: neither latest nor missing
+        if "@" not in image:
+            tag = image.rsplit(":", 1)[1] if (":" in image.rsplit("/", 1)[-1]) else None
+            if tag is None:
+                self.aspect(cont, "ImageTagMissing", "container.image.tag=missing")
+            elif tag == "latest":
+                self.aspect(cont, "ImageTagLatest", "container.image.tag=latest")
         self.relator("ImageReference", cont, img_iri, key=image)
 
     # ---- service / ingress ----------------------------------------------
@@ -206,14 +248,19 @@ class KCROGraph:
 
     # ---- rbac ------------------------------------------------------------
     def _rbac(self, o, doc):
-        for rule in (doc or {}).get("rules", []) or []:
-            if "*" in (rule.get("verbs") or []):     self.aspect(o, "WildcardVerbs", "rbac.rule.verbs=wildcard")
-            if "*" in (rule.get("resources") or []): self.aspect(o, "WildcardResources", "rbac.rule.resources=wildcard")
-            if "*" in (rule.get("apiGroups") or []): self.aspect(o, "WildcardAPIGroups", "rbac.rule.apiGroups=wildcard")
+        # one aspect per offending *rule* (salt=i), so --verify matches the
+        # occurrence semantics of survey.py (e.g. 1,684 WildcardVerbs occurrences)
+        for i, rule in enumerate((doc or {}).get("rules", []) or []):
+            if "*" in (rule.get("verbs") or []):     self.aspect(o, "WildcardVerbs", "rbac.rule.verbs=wildcard", salt=(i,))
+            if "*" in (rule.get("resources") or []): self.aspect(o, "WildcardResources", "rbac.rule.resources=wildcard", salt=(i,))
+            if "*" in (rule.get("apiGroups") or []): self.aspect(o, "WildcardAPIGroups", "rbac.rule.apiGroups=wildcard", salt=(i,))
 
     def _binding(self, repo, ns, o, kind, doc):
         roleRef = (doc or {}).get("roleRef") or {}
-        if roleRef.get("name") in ("cluster-admin", "system:masters"):
+        # cluster-admin only: matches the ontology's datasetKey and CIS 5.1.1.
+        # system:masters is a Group *subject*, never a roleRef, and is out of scope
+        # in v0.3.0 (see thesis note); reconcile with survey.py if it counted it.
+        if roleRef.get("name") == "cluster-admin":
             self.aspect(o, "ClusterAdminBinding", "binding.roleRef.name=cluster-admin")
         # the binding individual is itself a relator mediating its subjects and its role
         rk = roleRef.get("kind"); rn = roleRef.get("name")
@@ -262,10 +309,11 @@ class KCROGraph:
                 _, pod, repo, ns, saname = ref
                 sa = self.by_name.get((repo, ns, "ServiceAccount", saname))
                 if sa: self.relator("IdentityAssignment", pod, sa)
-            elif tag == "volume":
+            elif tag in ("volume", "env"):
                 _, pod, repo, ns, tkind, tname = ref
                 tgt = self.by_name.get((repo, ns, tkind, tname))
-                if tgt: self.relator("VolumeMount", pod, tgt)
+                if tgt:
+                    self.relator("VolumeMount" if tag == "volume" else "EnvReference", pod, tgt)
             elif tag == "bindrole":
                 binding, repo, ns, rk, rn = ref[1], ref[2], ref[3], ref[4], ref[5]
                 tgt = self.by_name.get((repo, ns, rk, rn)) or self.by_name.get((repo, "default", rk, rn))
@@ -284,6 +332,24 @@ class KCROGraph:
                 ing, repo, ns, svc = ref[1], ref[2], ref[3], ref[4]
                 tgt = self.by_name.get((repo, ns, "Service", svc))
                 if tgt: self.relator("IngressBackend", ing, tgt)
+
+    # -- audit: relators mediating fewer than two entities ------------------
+    def under_mediated(self):
+        """gUFO expects a relator to mediate >= 2 entities. Bindings whose role or
+        subjects were not found in the corpus end up below that; report them."""
+        med = {}
+        for r, _ in self.g.subject_objects(GUFO.mediates):
+            med[r] = med.get(r, 0) + 1
+        relator_classes = {KCRO[c] for c in (
+            "RoleBinding", "ClusterRoleBinding", "WorkloadManagement", "IdentityAssignment",
+            "VolumeMount", "EnvReference", "ImageReference", "ServiceRouting",
+            "NetworkPolicyScope", "IngressBackend")}
+        out = []
+        for cls in relator_classes:
+            for r in self.g.subjects(RDF.type, cls):
+                if med.get(r, 0) < 2:
+                    out.append(r)
+        return out
 
 
 # ---------------------------------------------------------------- loaders
@@ -330,6 +396,8 @@ def main():
     if a.verify:
         for cls in sorted(kg.counts):
             print(f"  {cls:28} {kg.counts[cls]}")
+        um = kg.under_mediated()
+        print(f"  relators mediating < 2 (unresolved corpus refs): {len(um)}")
 
 if __name__ == "__main__":
     main()
