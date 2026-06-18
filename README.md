@@ -1,94 +1,140 @@
-# KubeObjects: A Dataset of Real-World Kubernetes Objects
+# KCRO — Kubernetes Cybersecurity Research Ontology
 
-## Dataset Description
+**The FAIR semantic layer over the [KubeObjects][kubeobjects] corpus: an OWL 2 DL
+ontology (KCRO), a deterministic mapping pipeline, and the resulting knowledge
+graph.**
 
-The Kubernetes Configs Dataset provides a large-scale, deduplicated collection of Kubernetes manifests mined from public GitHub repositories. Files include raw Kubernetes YAML, manifests from Helm charts (both raw and Helm-rendered), and Skaffold configurations. Each sample is enriched with repository metadata (stars, forks, license, language, timestamps) for downstream machine learning and security analysis tasks.
+The data side of Kubernetes-security research is solved by **KubeObjects**
+[Grella et al., 2026][kubeobjects-paper] — a large, deduplicated corpus of
+real-world Kubernetes manifests enriched with repository metadata. What did not
+yet exist is the **semantic layer** that should sit on top of it: a formal
+vocabulary for the security findings, and a queryable knowledge graph that turns
+the corpus into machine-reasonable facts. **This repository is that layer.**
 
-### Structure
+> KCRO does **not** modify or re-publish KubeObjects. It builds *on top of* the
+> corpus: the manifests remain the authoritative data source (credit and
+> provenance below); KCRO adds the ontology, the mapping, and the graph.
 
-- **Format:** HuggingFace `Dataset`
-- **Deduplication Key:** (`author`, `repo_full_name`, `kind`, `metadata_name`, `metadata_namespace`)
-- **Access:** Saved as HuggingFace/parquet files for direct loading into Python ML pipelines.
+### Versions
 
-| Column                | Type   | Description |
-|-----------------------|--------|-------------|
-| content               | string | Raw YAML manifest |
-| tool                  | string | Ingestion method (`helm`, `skaffold`, `files`) |
-| author                | string | GitHub username |
-| repo_full_name        | string | Repository full name |
-| repo_sub_path         | string | Internal repo path to manifest |
-| kind                  | string | K8s object kind (e.g., Deployment) |
-| metadata_name         | string | Name of the object |
-| metadata_namespace    | string | Namespace (default if absent) |
-| container_images      | list   | Referenced container images |
-| repo_hash             | string | SHA256 of {author}_{repo_full_name} |
-| gh_stars              | float  | GitHub stars |
-| gh_forks              | float  | GitHub forks |
-| gh_language           | string | Repo language |
-| gh_created_at         | string | Creation date (ISO) |
-| gh_pushed_at          | string | Last push date (ISO) |
-| gh_open_issues        | float  | Open GitHub issues |
+The thesis (TScIT 45) describes **KCRO v0.3.0 (537,947-triple ABox)** — that is the
+exact artefact it evaluates, frozen at the [`v0.3.0`](https://github.com/endaibos/KCRO/releases/tag/v0.3.0)
+tag. This repository has **since added the v0.4.0 instance-level provenance layer
+(680,035 triples)**; the files on the default branch are v0.4.0. For the
+thesis-evaluated snapshot, use the `v0.3.0` tag.
 
-## Collection & Processing Pipeline
+- 🌐 Persistent ontology IRI: **<https://w3id.org/kcro>** (resolves to this repo's `main`)
+- 📦 Code & artefacts: **<https://github.com/endaibos/KCRO>**
+- 🧱 Built on: **KubeObjects** — <https://github.com/TheGrella/KubeObjects>
+- 📄 Licence: **CC BY 4.0**
 
-1. **Ingestion:**  
-   - Search & download manifests from GitHub using three profiles:
-       - `filename:Chart.yaml` for Helm
-       - `filename:skaffold.yaml` for Skaffold
-       - `language:YAML apiVersion kind` for generic configs
-   - Only permissive licenses (MIT, Apache, BSD, ISC, Unlicense).
-   - Each config batch is labeled by acquisition tool.
-   - For Helm, charts are either ingested as raw templates or locally rendered using the `helm template` CLI for fully populated YAML.
+---
 
-2. **Metadata Extraction:**  
-   - Parse YAML files (multiple documents supported).
-   - Extract K8s object metadata and referenced container images.
-   - Enrich rows with repository statistics from the GitHub API.
-   - Deduplicate manifests with: (`author`, `repo_full_name`, `kind`, `metadata_name`, `metadata_namespace`).
+## What's here
 
-3. **Output:**  
-   - Exported as HuggingFace Dataset directory (parquet).
-   - Includes full YAML and all enrichment columns.
+This repository adds five things on top of the KubeObjects corpus:
 
-## Replicability: How to Reproduce
+| Artefact | File(s) | What it is |
+|---|---|---|
+| **KCRO ontology** | [`kcro.ttl`](kcro.ttl) | The OWL 2 DL TBox — **72 classes** covering Kubernetes resources, security aspects, and inter-resource relators, grounded in [gUFO](http://purl.org/nemo/gufo). Thesis: v0.3.0; current file: v0.4.0-draft (adds the provenance terms). |
+| **Knowledge graph** | [`kcro-abox.ttl`](kcro-abox.ttl) | The instantiated ABox. **Thesis-evaluated v0.3.0: 537,947 triples** (see the `v0.3.0` tag). Current v0.4.0 (with provenance): 680,035 triples / 213,708 individuals. |
+| **Mapping pipeline** | [`instantiate_kcro.py`](instantiate_kcro.py) | Deterministic corpus → KG mapper (gUFO `inheresIn`/`mediates` patterns, two-pass reference resolution, provenance). See [MAPPER.md](MAPPER.md). |
+| **Analysis & query tooling** | [`survey.py`](survey.py), [`cq_runner.py`](cq_runner.py), [`srq3.py`](srq3.py) | `survey.py` = the SRQ1 security-field analysis; `cq_runner.py` = the 12 competency-question SPARQL queries, run as fast indexed joins. |
+| **FAIR packaging** | [`kcro.ttl`](kcro.ttl), [`metadata.py`](metadata.py) | Persistent `w3id` IRI, CC BY 4.0 licence, Dublin Core / SKOS metadata in the ontology header. |
 
-### Requirements
+Optional: an interactive **KG explorer** ([`kcro_server.py`](kcro_server.py) +
+the `*_visualizer.html` views) — a local SPARQL-backed browser and a GPU
+rendering of the full 210k-node graph.
+
+---
+
+## What KCRO adds over KubeObjects
+
+| | KubeObjects (the corpus) | KCRO (this layer) |
+|---|---|---|
+| **Form** | Tabular manifests + repo metadata | OWL 2 DL ontology + RDF knowledge graph |
+| **Security findings** | Implicit in raw YAML fields | First-class typed individuals (e.g. `AbsentRunAsNonRoot`) inhering in their bearer |
+| **Relationships** | Not modelled | Resolved relators (`ServiceRouting`, `IdentityAssignment`, …) |
+| **Queries** | Pandas / ad-hoc | SPARQL competency questions over a reasoned graph |
+| **Provenance** | Repo columns | `prov:wasDerivedFrom` links every object to its source `Repository` |
+
+Coverage of the mapping: **80.7 %** of corpus objects (60,774 / 75,340) fall into
+an in-scope KCRO class; the rest are the open long tail (CRDs, etc.).
+
+---
+
+## Reproduce
+
+Requires Python 3 and the dependencies in [`requirements.txt`](requirements.txt)
+(plus `datasets`, `rdflib`). The corpus (`k8s_dataset/`, a HuggingFace Arrow
+dataset) is produced by KubeObjects — see its repository to rebuild it; the steps
+below start from that corpus.
 
 ```bash
-pip install -r requirements.txt
+# 1. SRQ1 — security-field analysis of the corpus  → security_analysis.json
+python survey.py --security
+
+# 2. Build the knowledge graph (corpus → ABox)     → kcro-abox.ttl
+python instantiate_kcro.py --arrow k8s_dataset --out kcro-abox.ttl --verify
+
+# 3. Run the 12 competency questions (SRQ3)
+python cq_runner.py --abox kcro-abox.ttl --cqs
+
+#   ...or the one-shot full report (coverage, KG size, count diff, CQs):
+python srq3.py --arrow k8s_dataset --analysis security_analysis.json --cqs --tbox kcro.ttl
 ```
 
-### Setup
+`instantiate_kcro.py` is deterministic (content-addressed IRIs), so a re-run
+yields a byte-stable graph. For the mapper's architecture and how to add a new
+data source or mapping rule, see **[MAPPER.md](MAPPER.md)**.
 
-1. Set GitHub token in `.env`:
-    ```
-    GITHUB_TOKEN=your_github_token
-    ```
+---
 
-2. Download manifests:
-    ```bash
-    python scraper.py --mode helm --max-contexts 500
-    python scraper.py --mode skaffold
-    python scraper.py --mode files
-    ```
+## Citation
 
-3. Extract metadata and build dataset:
-    ```bash
-    python metadata.py
-    ```
+If you use KCRO, please cite both the ontology/thesis **and** the underlying
+corpus:
 
-4. Load the dataset:
-    ```python
-    from datasets import load_dataset
-    dataset = load_dataset('./k8s_hf_dataset')
-    ```
+```bibtex
+@misc{kcro2026,
+  author       = {Dorneanu, Andrei},
+  title        = {KCRO: Kubernetes Cybersecurity Research Ontology},
+  year         = {2026},
+  howpublished = {\url{https://w3id.org/kcro}},
+  note         = {Code: \url{https://github.com/endaibos/KCRO}. ORCID: <ADD ORCID>}
+}
 
-## Example: Exploring the Dataset
-
-```python
-# List Kubernetes object kinds
-kinds = set(dataset['kind'])
-
-# Filter Deployments from popular repositories
-deployments = dataset.filter(lambda x: x['kind'] == 'Deployment' and x['gh_stars'] > 100)
+@misc{kubeobjects2026,
+  author       = {Grella, <ADD AUTHORS>},
+  title        = {KubeObjects: A Dataset of Real-World Kubernetes Objects},
+  year         = {2026},
+  howpublished = {\url{https://github.com/TheGrella/KubeObjects}},
+  note         = {DOI: <ADD DOI>}
+}
 ```
+
+> Placeholders `<ADD …>` — fill in your ORCID, the KubeObjects author list and
+> paper DOI, and the final thesis citation before publishing.
+
+- **Ontology IRI:** <https://w3id.org/kcro> (persistent; resolves to the repo's `main`)
+- **Author:** A. Dorneanu, University of Twente
+- **Licence:** [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+
+---
+
+## AI use statement
+
+The scope, design decisions, ontology engineering, and literature grounding of
+KCRO are the author's. Claude (Anthropic) was used as an assistant for: ontology
+review and refactoring (the gUFO meta-typing, the existential bearer restrictions,
+and the v0.4.0 provenance extension); implementing and refactoring the mapping
+pipeline (the gUFO aspect/relator emitters, two-pass reference resolution,
+deterministic IRI minting); formalising and executing the competency-question
+SPARQL queries and analysis tooling; and documentation. **All AI-assisted changes
+were reviewed by the author.** OWL 2 DL consistency was verified by the author with
+HermiT in Protégé, and the generated knowledge graph was validated against the
+SRQ1 survey counts (`--verify` / `security_analysis.json`).
+
+[kubeobjects]: https://github.com/TheGrella/KubeObjects
+[kubeobjects-paper]: https://github.com/TheGrella/KubeObjects
+[kubeobjects-repo]: https://github.com/TheGrella/KubeObjects
