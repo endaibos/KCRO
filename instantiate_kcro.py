@@ -47,6 +47,15 @@ INPUT
                    (content = the raw YAML string of the manifest)
     --arrow DIR    a HuggingFace Arrow dataset dir (the k8s_dataset/ that survey.py loads)
                    *** confirm the column names match your schema (see load_arrow). ***
+
+AI DISCLOSURE
+    The Kubernetes-to-KCRO mapping decisions and gUFO modelling choices are the
+    author's. Claude (Anthropic) assisted with implementing/refactoring the
+    ABox-construction engine (aspect/relator emitters, two-pass reference
+    resolution, deterministic IRI minting, the v0.4.0 provenance extension) and
+    documentation. All AI-assisted code was reviewed by the author; the generated
+    ABox was validated against the survey counts (--verify) and the KCRO TBox.
+    See MAPPER.md for the full artefact description.
 """
 
 import argparse, hashlib, json, sys
@@ -57,6 +66,7 @@ from rdflib import Graph, Namespace, URIRef, Literal, RDF, RDFS, OWL
 KCRO = Namespace("https://w3id.org/kcro#")          # the TBox vocabulary
 GUFO = Namespace("http://purl.org/nemo/gufo#")
 DATA = Namespace("https://w3id.org/kcro/data#")     # the ABox (instances)
+PROV = Namespace("http://www.w3.org/ns/prov#")      # provenance (v0.4.0)
 ABOX_IRI = URIRef("https://w3id.org/kcro/data")     # ontology header of the ABox file
 
 # ---------------------------------------------------------------- kind -> KCRO class
@@ -80,6 +90,9 @@ def obj_iri(repo, kind, ns, name):
 def child_iri(parent, suffix, *extra):
     return DATA[f"{suffix}-{_h(parent, suffix, *extra)}"]
 
+def repo_iri(repo):
+    return DATA[f"Repository-{_h(repo)}"]
+
 
 class KCROGraph:
     def __init__(self):
@@ -93,6 +106,7 @@ class KCROGraph:
         self.pods_by_label = {}           # (repo, ns) -> [(labels_dict, pod_iri)]
         self.deferred = []                # references to resolve in pass 2
         self.counts = {}                  # KCRO class -> n distinct individuals (--verify)
+        self.repos_seen = set()           # repo names already minted as Repository
 
     # -- helpers -----------------------------------------------------------
     def add_type(self, indiv, cls):
@@ -100,6 +114,22 @@ class KCROGraph:
         if (indiv, RDF.type, KCRO[cls]) not in self.g:
             self.counts[cls] = self.counts.get(cls, 0) + 1
         self.g.add((indiv, RDF.type, KCRO[cls]))
+
+    def repo(self, repo_name):
+        """Mint (once) the Repository individual for a source repo and return it.
+        Metadata (stars/forks/language) is attached later via add_repo_meta()."""
+        r = repo_iri(repo_name)
+        if repo_name not in self.repos_seen:
+            self.repos_seen.add(repo_name)
+            self.add_type(r, "Repository")
+            self.g.add((r, RDFS.label, Literal(repo_name)))
+        return r
+
+    def provenance(self, indiv, repo, ns=None):
+        """Link an object/container to its source repo (PROV) and, optionally, ns."""
+        self.g.add((indiv, PROV.wasDerivedFrom, self.repo(repo)))
+        if ns is not None:
+            self.g.add((indiv, KCRO.namespace, Literal(ns)))
 
     def aspect(self, bearer, cls, key, salt=()):
         """Mint an intrinsic aspect of class `cls` inhering in `bearer`.
@@ -125,6 +155,7 @@ class KCROGraph:
         o = obj_iri(repo, kind, ns, name)
         self.add_type(o, KIND_CLASS[kind])
         self.g.add((o, RDFS.label, Literal(f"{kind}/{name}", lang="en")))
+        self.provenance(o, repo, ns)              # source repo + namespace
         self.by_name[(repo, ns, kind, name)] = o
 
         spec = (doc or {}).get("spec", {}) or {}
@@ -195,6 +226,7 @@ class KCROGraph:
             cont = child_iri(pod, "Container", c.get("name", "c"))
             self.add_type(cont, "Container")
             self.g.add((cont, GUFO.isProperPartOf, pod))
+            self.provenance(cont, repo)           # containers carry provenance too (CQ12)
             csc = c.get("securityContext")
             if not isinstance(csc, dict):
                 csc = {}
@@ -351,6 +383,32 @@ class KCROGraph:
                     out.append(r)
         return out
 
+    # -- attach GitHub metadata to the Repository individuals --------------
+    def add_repo_meta(self, meta):
+        """meta: {repo_name: {stars, forks, lang}}. Only repos already minted
+        (i.e. that contributed an object) get annotated. Missing/NaN values are
+        skipped (the GitHub enrichment isn't complete for every repo)."""
+        def as_int(x):
+            try:
+                xf = float(x)
+            except (TypeError, ValueError):
+                return None
+            return None if xf != xf else int(xf)        # NaN != NaN
+
+        for name in self.repos_seen:
+            m = meta.get(name)
+            if not m:
+                continue
+            r = repo_iri(name)
+            stars, forks = as_int(m.get("stars")), as_int(m.get("forks"))
+            if stars is not None:
+                self.g.add((r, KCRO.repoStars, Literal(stars)))
+            if forks is not None:
+                self.g.add((r, KCRO.repoForks, Literal(forks)))
+            lang = m.get("lang")
+            if isinstance(lang, str) and lang:
+                self.g.add((r, KCRO.repoLanguage, Literal(lang)))
+
 
 # ---------------------------------------------------------------- loaders
 def load_jsonl(path):
@@ -374,6 +432,21 @@ def load_arrow(path):
                 md = doc.get("metadata") or {}
                 yield row.get("repo_full_name", "repo"), doc["kind"], md.get("namespace"), md.get("name", "?"), doc
 
+def load_repo_meta(path):
+    """One pass over the Arrow dataset for GitHub stats per repo (no YAML parse).
+    Returns {repo_full_name: {stars, forks, lang}}."""
+    from datasets import load_from_disk
+    ds = load_from_disk(path)
+    cols = [c for c in ("repo_full_name", "gh_stars", "gh_forks", "gh_language")
+            if c in ds.column_names]
+    meta = {}
+    for row in ds.select_columns(cols):
+        name = row.get("repo_full_name")
+        if name and name not in meta:
+            meta[name] = {"stars": row.get("gh_stars"), "forks": row.get("gh_forks"),
+                          "lang": row.get("gh_language")}
+    return meta
+
 
 # ---------------------------------------------------------------- main
 def main():
@@ -390,6 +463,8 @@ def main():
     for repo, kind, ns, name, doc in rows:                 # index labels
         kg.index_pod_labels(repo, ns, kind, name, doc)
     kg.resolve()                                           # pass 2
+    if a.arrow:                                            # GitHub stats per repo
+        kg.add_repo_meta(load_repo_meta(a.arrow))
 
     kg.g.serialize(destination=a.out, format="turtle")
     print(f"wrote {a.out}: {len(kg.g)} triples")

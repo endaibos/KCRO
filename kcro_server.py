@@ -32,7 +32,7 @@ from urllib.parse import parse_qs
 
 from collections import defaultdict
 
-from rdflib import RDF, Graph, Namespace, URIRef
+from rdflib import RDF, RDFS, Graph, Namespace, URIRef
 
 HERE = Path(__file__).resolve().parent
 ABOX = HERE / "kcro-abox.ttl"
@@ -44,11 +44,13 @@ STATIC = {
     "/full2d": ("full_2d_visualizer.html", "text/html; charset=utf-8"),
     "/full3d": ("full_3d_visualizer.html", "text/html; charset=utf-8"),
     "/full_positions.bin": ("full_positions.bin", "application/octet-stream"),
+    "/full_positions_2d.bin": ("full_positions_2d.bin", "application/octet-stream"),
 }
 
 GUFO = Namespace("http://purl.org/nemo/gufo#")
 KCRO = Namespace("https://w3id.org/kcro#")
 DATA = Namespace("https://w3id.org/kcro/data#")  # the ':' prefix in the abox
+PROV = Namespace("http://www.w3.org/ns/prov#")   # provenance (v0.4.0)
 
 # Predicates that produce a visible edge, and the gUFO role of their *subject*.
 # Classification priority (highest first): a node that is ever the subject of
@@ -171,14 +173,33 @@ def build_full() -> dict:
     renderers (Cosmos 2D / Three.js point cloud): ~208k nodes, ~196k edges.
 
     Returns parallel arrays rather than objects to keep the payload small:
-      groups -- one int per node (index == node id): 0 Object, 1 Relator, 2 Vulnerability
-      links  -- flat [src0, tgt0, src1, tgt1, ...] integer index pairs
-      ids    -- node IRI localname per index (for hover/lookup)
+      groups   -- one int per node (index == id): 0 Object, 1 Relator, 2 Vulnerability
+      links    -- flat [src0, tgt0, src1, tgt1, ...] integer index pairs
+      ids      -- node IRI localname per index (the /node lookup key)
+      names    -- human label per index: rdfs:label ("Pod/grafana") if present,
+                  else the class ("ServiceRouting"), else the localname
+      clusters -- connected-component id per index
+      repoId   -- index into `repos` (source repository) per node, propagated
+                  across each component; -1 if unknown
+      nsId     -- index into `namespaces` (Kubernetes namespace) per node; -1 if unknown
+      repos / namespaces -- the string tables repoId / nsId index into
     Group is assigned by gUFO role: subject of inheresIn -> Vulnerability(2),
     of mediates -> Relator(1), otherwise Object(0). Cached at startup.
     """
+    # Pre-index naming + provenance material in a few fast index scans.
+    label_of = {str(s): str(o) for s, o in graph.subject_objects(RDFS.label)}
+    type_of = {str(s): localname(str(o)) for s, o in graph.subject_objects(RDF.type)}
+    # object/container -> its repo's human label (via prov:wasDerivedFrom)
+    repo_of = {str(s): label_of.get(str(o), localname(str(o)))
+               for s, o in graph.subject_objects(PROV.wasDerivedFrom)}
+    ns_of = {str(s): str(o) for s, o in graph.subject_objects(KCRO.namespace)}
+
+    # Repository and the ontology header are provenance/metadata, not graph nodes.
+    SKIP_TYPES = {"Repository", "Ontology"}
+
     idx = {}            # IRI -> integer index
-    ids = []            # index -> localname
+    ids = []            # index -> localname (lookup key)
+    names = []          # index -> human label
     groups = []         # index -> group code
 
     def node_id(iri: str) -> int:
@@ -186,12 +207,16 @@ def build_full() -> dict:
         if i is None:
             i = idx[iri] = len(ids)
             ids.append(localname(iri))
+            # readable name: real K8s label > class name > raw localname
+            names.append(label_of.get(iri) or type_of.get(iri) or localname(iri))
             groups.append(0)
         return i
 
-    # Include every typed individual as a node (so isolated nodes still appear).
+    # Every typed individual is a node, except provenance/header metadata.
     for s in graph.subjects(RDF.type):
-        node_id(str(s))
+        siri = str(s)
+        if type_of.get(siri) not in SKIP_TYPES:
+            node_id(siri)
 
     links = []
     # code = the group a *subject* of this predicate should have (max wins).
@@ -203,7 +228,58 @@ def build_full() -> dict:
             if code > groups[si]:
                 groups[si] = code
 
-    return {"count": len(ids), "groups": groups, "links": links, "ids": ids}
+    clusters = connected_component_ids(len(ids), links)
+
+    # Propagate repo/namespace across each component: aspects/relators inherit
+    # the repo of the object they hang off (every component is single-repo, since
+    # cross-repo references never resolve in the pipeline).
+    iri_of = [None] * len(ids)
+    for iri, i in idx.items():
+        iri_of[i] = iri
+    comp_repo, comp_ns = {}, {}
+    for i, iri in enumerate(iri_of):
+        c = clusters[i]
+        if iri in repo_of:
+            comp_repo.setdefault(c, repo_of[iri])
+        if iri in ns_of:
+            comp_ns.setdefault(c, ns_of[iri])
+
+    repos, repo_index = [], {}
+    namespaces, ns_index = [], {}
+
+    def intern(table, index, value):
+        if value is None:
+            return -1
+        j = index.get(value)
+        if j is None:
+            j = index[value] = len(table)
+            table.append(value)
+        return j
+
+    repoId, nsId = [], []
+    for i, iri in enumerate(iri_of):
+        r = repo_of.get(iri) or comp_repo.get(clusters[i])
+        ns = ns_of.get(iri) or comp_ns.get(clusters[i])
+        repoId.append(intern(repos, repo_index, r))
+        nsId.append(intern(namespaces, ns_index, ns))
+
+    return {"count": len(ids), "groups": groups, "links": links,
+            "ids": ids, "names": names, "clusters": clusters,
+            "repoId": repoId, "nsId": nsId,
+            "repos": repos, "namespaces": namespaces}
+
+
+def connected_component_ids(n: int, links: list) -> list:
+    """One integer per node naming its connected component (scipy union-find)."""
+    if not links:
+        return list(range(n))
+    import numpy as np
+    import scipy.sparse as sp
+    import scipy.sparse.csgraph as csgraph
+    arr = np.asarray(links, dtype=np.int64).reshape(-1, 2)
+    m = sp.coo_matrix((np.ones(len(arr)), (arr[:, 0], arr[:, 1])), shape=(n, n))
+    _, labels = csgraph.connected_components(m, directed=False)
+    return labels.tolist()
 
 
 def node_details(name: str, limit: int = 60) -> dict:

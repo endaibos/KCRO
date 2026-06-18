@@ -33,6 +33,8 @@ PREFIX prov: <http://www.w3.org/ns/prov#>
 """
 
 # The 12 thesis CQs (final KCRO vocabulary) — same queries as website/visualizer.
+# CQ1-8 are single-hop; CQ9-11 are the multi-hop joins (slow); CQ12 stays empty
+# until provenance is modelled (no kcro:Repository yet — it's the honest gap).
 CQS = {
  "CQ1": "SELECT ?c WHERE { ?v a kcro:PrivilegedContainer ; gufo:inheresIn ?c . ?c a kcro:Container . }",
  "CQ2": "SELECT ?p ?c WHERE { ?v a kcro:AbsentResourceLimit ; gufo:inheresIn ?c . ?c gufo:isProperPartOf ?p . }",
@@ -57,7 +59,6 @@ CQS = {
 }
 
 # KCRO class -> candidate key names in security_analysis.json.
-# *** Adjust the right-hand candidates to your json's actual key names. ***
 ANALYSIS_KEYS = {
  "PrivilegedContainer":        ["container.securityContext.privileged=true", "privileged"],
  "PrivilegeEscalationAllowed": ["container.securityContext.allowPrivilegeEscalation=true", "allowPrivilegeEscalation"],
@@ -86,6 +87,7 @@ ANALYSIS_KEYS = {
 }
 
 def flatten(d, prefix=""):
+    # nested survey JSON -> flat {"a.b.c": count}, keeping only numeric leaves
     out = {}
     for k, v in d.items():
         key = f"{prefix}{k}"
@@ -116,18 +118,27 @@ def main():
     print("loading corpus…")
     rows = list(ik.load_jsonl(a.jsonl) if a.jsonl else ik.load_arrow(a.arrow))
     total = len(rows)
+    # coverage = the share of corpus objects KCRO actually models; unmapped kinds
+    # (CRDs, PodSecurityPolicy, …) are the open long tail we deliberately skip.
     mapped = sum(1 for _, kind, *_ in rows if kind in ik.KIND_CLASS)
     coverage = 100.0 * mapped / total if total else 0.0
     print(f"corpus objects: {total:,} | in-scope (mapped): {mapped:,} | coverage {coverage:.1f}%")
 
     print("pass 1 + 2…")
+    # Two passes so file order never matters: pass 1 mints every object, then
+    # pass 2 can resolve cross-references (a Service routing to a Pod) safely.
     kg = ik.KCROGraph()
     for repo, kind, ns, name, doc in rows: kg.ingest(repo, kind, ns, name, doc)
+    # index pod labels between passes — selectors (Service/NetworkPolicy) resolve
+    # to pods by label, not by name, so the label map must exist before resolve().
     for repo, kind, ns, name, doc in rows: kg.index_pod_labels(repo, ns, kind, name, doc)
     kg.resolve()
+    if a.arrow: kg.add_repo_meta(ik.load_repo_meta(a.arrow))   # GitHub stats per repo
     triples = len(kg.g)
     print(f"ABox built: {triples:,} triples in {time.time()-t0:.0f}s — serialising…")
-    kg.g.serialize(destination=a.out, format="turtle")
+    kg.g.serialize(destination=a.out, format="turtle")   # overwrites --out
+    # gUFO expects a relator to mediate ≥2 entities; fewer = a corpus ref that
+    # never resolved (target outside the corpus). We report the count, not fail.
     under = kg.under_mediated()
 
     # ---- diff against the survey aggregates --------------------------------
@@ -135,9 +146,11 @@ def main():
     if a.analysis:
         flat = flatten(json.loads(Path(a.analysis).read_text()))
         for cls, candidates in ANALYSIS_KEYS.items():
-            got = kg.counts.get(cls, 0)
-            exp = None
+            got = kg.counts.get(cls, 0)               # what the pipeline instantiated
+            exp = None                                # what the survey counted
             for cand in candidates:
+                # survey key names drifted, so match loosely: exact, dotted-suffix,
+                # then substring. Candidates are ordered strongest-first; first hit wins.
                 hits = [v for k, v in flat.items() if k == cand or k.endswith("." + cand) or cand in k]
                 if hits: exp = int(hits[0]); break
             mark = "?" if exp is None else ("OK" if exp == got else f"MISMATCH (survey {exp:,})")
@@ -146,18 +159,15 @@ def main():
                 print(f"  !! {cls}: ABox {got:,} vs survey {exp:,}")
 
     # ---- CQ execution -------------------------------------------------------
+    # Run the CQs as indexed Python joins (cq_runner) on the in-memory ABox, NOT
+    # as one giant rdflib SPARQL query: CQ9/10/11 finish in seconds, not hours,
+    # and there's no re-parse since kg.g is already built.
     cq_lines = []
     if a.cqs:
-        print("loading TBox + ABox for CQ pass…")
-        g = Graph(); g.parse(a.tbox, format="turtle"); g.parse(a.out, format="turtle")
-        for cid, q in CQS.items():
-            t = time.time()
-            try:
-                nres = sum(1 for _ in g.query(PREFIXES + q))
-                cq_lines.append(f"| {cid} | {nres:,} | {time.time()-t:.1f}s |")
-                print(f"  {cid}: {nres:,} rows ({time.time()-t:.1f}s)")
-            except Exception as e:
-                cq_lines.append(f"| {cid} | error | {e} |")
+        import cq_runner
+        print("running CQs (indexed joins)…")
+        for label, n, secs in cq_runner.run_cqs(kg.g):
+            cq_lines.append(f"| {label} | {n:,} | {secs:.1f}s |")
 
     # ---- report --------------------------------------------------------------
     rep = [f"# SRQ3 full-corpus run\n",

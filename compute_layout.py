@@ -31,7 +31,8 @@ import scipy.sparse as sp
 import scipy.sparse.csgraph as csgraph
 
 SERVER = "http://localhost:8000/full"
-OUT = "full_positions.bin"
+OUT = "full_positions.bin"        # 3D galaxy (Three.js view)
+OUT_2D = "full_positions_2d.bin"  # 2D repo-grouped fixed layout (Cosmos static view)
 SEED = 7
 
 # Tunables for the look of the galaxy.
@@ -46,6 +47,53 @@ def fetch_full():
             return json.load(r)
     except Exception as exc:
         sys.exit(f"Could not reach {SERVER} ({exc}). Start kcro_server.py first.")
+
+
+def galaxy_2d(n, repo_id, labels, degree):
+    """Fixed 2D layout, three nested levels of golden-angle (sunflower) packing:
+    repositories spread across a disk, their components tiled within each repo's
+    region, and each component drawn as a hub (highest-degree node) ringed by its
+    members. Deterministic and static — the view never moves, you just zoom in.
+    Normalised to fit the Cosmos space (max 8192)."""
+    from collections import defaultdict
+    GA = np.pi * (3 - np.sqrt(5))                  # golden angle
+    pos = np.zeros((n, 2), dtype=np.float64)
+
+    repo_nodes = defaultdict(list)
+    for i, r in enumerate(repo_id):
+        repo_nodes[r].append(i)
+    repos = sorted(repo_nodes)
+    Nr = max(len(repos), 1)
+    R = 3600.0                                     # overall radius of the repo field
+
+    for ri, r in enumerate(repos):
+        nodes = repo_nodes[r]
+        rr, ra = R * np.sqrt((ri + 0.5) / Nr), ri * GA
+        cx, cy = rr * np.cos(ra), rr * np.sin(ra)  # repo region center
+        repo_radius = 6.0 * np.sqrt(len(nodes))
+        comp_nodes = defaultdict(list)
+        for i in nodes:
+            comp_nodes[labels[i]].append(i)
+        comps = list(comp_nodes)
+        Nc = max(len(comps), 1)
+        for ci, c in enumerate(comps):
+            members = sorted(comp_nodes[c], key=lambda i: -degree[i])  # hub first
+            cr, ca = repo_radius * np.sqrt((ci + 0.5) / Nc), ci * GA
+            scx, scy = cx + cr * np.cos(ca), cy + cr * np.sin(ca)      # component center
+            comp_radius = 1.4 * np.sqrt(max(len(members), 1))
+            m = len(members)
+            for mi, i in enumerate(members):
+                if mi == 0:
+                    pos[i] = (scx, scy)            # hub at the center
+                else:
+                    ma, mr = mi * GA, comp_radius * np.sqrt(mi / m)
+                    pos[i] = (scx + mr * np.cos(ma), scy + mr * np.sin(ma))
+
+    # Normalise into the Cosmos coordinate box [256, 7936], preserving aspect.
+    mn, mx = pos.min(axis=0), pos.max(axis=0)
+    span = float((mx - mn).max()) or 1.0
+    pos = (pos - mn) / span * 7680.0 + 256.0
+    return pos.astype(np.float32)
 
 
 def main():
@@ -102,6 +150,15 @@ def main():
         f.write(pos.tobytes())
     print(f"Wrote {OUT}: {n:,} positions "
           f"({4 + pos.nbytes:,} bytes). Galaxy radius ~{radius:.0f}.", flush=True)
+
+    # 2D fixed repo-grouped layout for the static Cosmos view.
+    repo_id = data.get("repoId") or [-1] * n
+    pos2d = galaxy_2d(n, repo_id, labels, degree)
+    with open(OUT_2D, "wb") as f:
+        f.write(struct.pack("<I", n))
+        f.write(pos2d.tobytes())
+    print(f"Wrote {OUT_2D}: {n:,} 2D positions "
+          f"({len(set(repo_id))} repo regions).", flush=True)
 
 
 if __name__ == "__main__":

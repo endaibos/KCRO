@@ -66,7 +66,21 @@
     <div id="status">Loading…</div>
     <div id="hover"></div>
     <p class="sub" style="margin-top:6px">Hover for name &middot; <b>click a node</b> to highlight its neighbourhood</p>
-    <button id="pause">⏸ Pause layout</button><button id="fit">⤢ Fit view</button><button id="edges">⛓ Edges</button><button id="save">💾 Save layout</button><button id="clear">✕ Clear highlight</button>
+    <button id="pause">⏸ Pause layout</button><button id="fit">⤢ Fit view</button><button id="edges">⛓ Edges</button><button id="cluster">◉ Cluster</button><button id="save">💾 Save layout</button><button id="clear">✕ Clear highlight</button>
+    <label style="display:block;margin-top:8px">layout
+      <select id="layout" style="margin-top:4px">
+        <option value="force">force (live)</option>
+        <option value="grid-repo">grid · by repository</option>
+        <option value="grid-comp">grid · by component</option>
+      </select>
+    </label>
+    <label style="display:block;margin-top:8px">color by
+      <select id="colorBy" style="margin-top:4px">
+        <option value="group">gUFO group</option>
+        <option value="repo">source repo</option>
+        <option value="ns">namespace</option>
+      </select>
+    </label>
   </div>
   <div id="legend" class="panel">
     <div class="legend-row"><span class="dot" style="background:#ff7b72"></span>Vulnerability</div>
@@ -197,34 +211,21 @@ PREFIX prov: <http://www.w3.org/ns/prov#>
       const data = await fetch('/full').then(ok).then(r => r.json());
       const n = data.count;
       const groups = data.groups;
-      const ids = data.ids;
+      const ids = data.ids;                                   // localname (lookup key)
+      const names = data.names || ids;                        // human label for display
+      const clusters = data.clusters;                         // connected-component id per node
+      const repoId = data.repoId || [];                       // source-repo id per node (-1 = unknown)
+      const nsId = data.nsId || [];                           // namespace id per node
+      const repos = data.repos || [];                         // repo id -> name
+      const namespaces = data.namespaces || [];               // ns id -> name
       const idIndex = new Map(ids.map((id, i) => [id, i]));   // localname -> point index
 
-      // Simulation space capped by the GPU's max texture size.
-      const maxTexSize = (() => {
-        try {
-          const gl = document.createElement('canvas').getContext('webgl2')
-                  || document.createElement('canvas').getContext('webgl');
-          return gl ? gl.getParameter(gl.MAX_TEXTURE_SIZE) : 8192;
-        } catch { return 8192; }
-      })();
-      const space = Math.min(maxTexSize, 16384);   // cap at 16384 (matches GPUs probed so far)
-
-      // Initial positions: saved layout if the server has one, else random scatter.
-      let positions = null, restored = false;
-      try {
-        const saved = await fetch('/positions').then(r => r.ok ? r.json() : null);
-        if (saved && saved.positions && saved.positions.length === n * 2) {
-          positions = Float32Array.from(saved.positions); restored = true;
-        }
-      } catch { /* no saved layout */ }
-      if (!positions) {
-        positions = new Float32Array(n * 2);
-        for (let i = 0; i < n; i++) {
-          positions[2 * i]     = Math.random() * space;
-          positions[2 * i + 1] = Math.random() * space;
-        }
-      }
+      const space = 8192;                            // Cosmos coordinate box (max)
+      const randomScatter = () => {                  // start state for the force layout
+        const p = new Float32Array(n * 2);
+        for (let i = 0; i < n; i++) { p[2*i] = Math.random()*space; p[2*i+1] = Math.random()*space; }
+        return p;
+      };
 
       const links = Float32Array.from(data.links);
 
@@ -234,15 +235,36 @@ PREFIX prov: <http://www.w3.org/ns/prov#>
       const sizes = new Float32Array(n);
       for (let i = 0; i < n; i++) sizes[i] = 2 + Math.log2(1 + deg[i]) * 1.3;
 
-      // Base colors from gUFO group (kept so highlights can restore them).
+      // ---- coloring: by gUFO group (default), source repo, or namespace ----
+      const greyRGBA = [0.42, 0.45, 0.50, 1.0];
+      function hslToRgb(h, s, l) {
+        const f = nn => { const k = (nn + h * 12) % 12, a = s * Math.min(l, 1 - l);
+          return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); };
+        return [f(0), f(8), f(4)];
+      }
+      const hueRGBA = id => id < 0 ? greyRGBA          // distinct stable color per id
+        : [...hslToRgb(((id * 137.508) % 360) / 360, 0.62, 0.62), 1.0];  // golden-angle hues
+      let colorMode = 'group';
+      const colorOf = i =>
+        colorMode === 'repo' ? hueRGBA(repoId[i]) :
+        colorMode === 'ns'   ? hueRGBA(nsId[i]) :
+                               (RGBA[groups[i]] || RGBA[0]);
+      // baseColors holds the *current* coloring; highlight/dim restore from it.
       const baseColors = new Float32Array(n * 4);
-      for (let i = 0; i < n; i++) baseColors.set(RGBA[groups[i]] || RGBA[0], i * 4);
+      for (let i = 0; i < n; i++) baseColors.set(colorOf(i), i * 4);
+      function recolor() {
+        for (let i = 0; i < n; i++) baseColors.set(colorOf(i), i * 4);
+        graph.setPointColors(baseColors);
+      }
 
       // Adjacency for ego-network highlighting (built once, ~2x edge count ints).
       const adj = Array.from({ length: n }, () => []);
       for (let k = 0; k < links.length; k += 2) {
         adj[links[k]].push(links[k + 1]); adj[links[k + 1]].push(links[k]);
       }
+
+      const edgeCount = (links.length / 2).toLocaleString();
+      let mode = 'force', settleTimer = null, clusterOn = true, edgesOn = true;
 
       const config = {
         spaceSize: space,
@@ -258,54 +280,130 @@ PREFIX prov: <http://www.w3.org/ns/prov#>
         linkVisibilityDistanceRange: [0, 100000],
         linkVisibilityMinTransparency: 0.25,
         pointSizeScale: 1.4,
-        scalePointsOnZoom: true,
+        scalePointsOnZoom: true,       // nodes grow as you zoom in
         fitViewOnInit: true,
-        fitViewDelay: restored ? 200 : 1500,
+        fitViewDelay: 1500,
         enableDrag: false,
         onClick: (index) => { if (index != null) showDetails(index); },
-        onPointMouseOver: (index) => { if (index != null) $('hover').textContent = ids[index]; },
-        onSimulationEnd: () => setPaused(true),   // natural settle (timer below is the fallback)
+        onPointMouseOver: (index) => {
+          if (index == null) return;
+          const r = repos[repoId[index]];
+          $('hover').textContent = names[index] + (r ? '  ·  ' + r : '');
+        },
+        onSimulationEnd: () => { if (mode === 'force') freeze('settled (force) — drag to pan'); },
       };
 
       const graph = new Graph($('graph'), config);
-      graph.setPointPositions(positions);
+      graph.setPointPositions(randomScatter());
       graph.setPointColors(baseColors);
       if (graph.setPointSizes) graph.setPointSizes(sizes);
       graph.setLinks(links);
+      // repo cluster force pulls each repository together while it settles.
+      // setPointClusters wants (number|undefined)[] — undefined means "no cluster".
+      const repoClusters = repoId.map(v => v < 0 ? undefined : v);
+      graph.setPointClusters(repoClusters);
+      graph.setConfig({ simulationCluster: 0.35 });
       graph.render();
-      if (restored) graph.pause?.();   // saved layout: no need to re-simulate
 
-      const edgeCount = (links.length / 2).toLocaleString();
-      status.textContent = `${n.toLocaleString()} nodes · ${edgeCount} edges · ` +
-        (restored ? 'layout restored' : 'settling layout…');
-
-      // ---- pause / settle -------------------------------------------------
-      let paused = restored;
-      function setPaused(p) {
-        paused = p;
-        if (p) { graph.pause?.(); $('pause').textContent = '▶ Resume layout'; }
-        else { graph.start?.(); graph.restart?.(); $('pause').textContent = '⏸ Pause layout'; }
+      // ---- GRID layout: every cluster in its own non-overlapping cell ------
+      // (basis = repoId for a grid of repositories, or clusters for components)
+      function gridPositions(basis) {
+        const groups = new Map();
+        for (let i = 0; i < n; i++) {
+          const c = basis[i]; if (c < 0) continue;
+          let g = groups.get(c); if (!g) groups.set(c, g = []); g.push(i);
+        }
+        const cells = [...groups.keys()];
+        const cols = Math.ceil(Math.sqrt(cells.length));
+        const CELL = 8000 / cols;                    // fill the whole box with the grid
+        const GA = Math.PI * (3 - Math.sqrt(5));
+        const SPACING = 9;                           // gap between adjacent nodes in a cluster
+        const RCAP = CELL * 0.46;                    // cap so a cluster stays inside its cell
+        const p = new Float32Array(n * 2);
+        cells.forEach((c, ci) => {
+          const cx = (ci % cols) * CELL, cy = Math.floor(ci / cols) * CELL;
+          const mem = groups.get(c).sort((a, b) => deg[b] - deg[a]);   // hub first
+          const m = mem.length;
+          // grow the cluster radius with node count -> constant spacing between nodes
+          const R = Math.min(SPACING * Math.sqrt(m), RCAP);
+          mem.forEach((idx, k) => {
+            if (k === 0) { p[2*idx] = cx; p[2*idx+1] = cy; }            // hub at cell center
+            else { const a = k*GA, r = R*Math.sqrt(k/m); p[2*idx] = cx+r*Math.cos(a); p[2*idx+1] = cy+r*Math.sin(a); }
+          });
+        });
+        return p;
       }
-      const SETTLE_MS = 12000;
-      const settleTimer = restored ? null : setTimeout(() => {
-        setPaused(true);
-        status.textContent = `${n.toLocaleString()} nodes · ${edgeCount} edges · layout frozen`;
-      }, SETTLE_MS);
-      $('pause').onclick = () => { if (settleTimer) clearTimeout(settleTimer); setPaused(!paused); };
+
+      function freeze(msg) {
+        graph.pause?.();
+        status.textContent = `${n.toLocaleString()} nodes · ${edgeCount} edges · ${msg}`;
+      }
+      function setMode(m) {
+        mode = m;
+        if (settleTimer) { clearTimeout(settleTimer); settleTimer = null; }
+        if (m === 'force') {
+          graph.setPointClusters(clusterOn ? repoClusters : repoId.map(() => undefined));
+          graph.setConfig({ simulationCluster: clusterOn ? 0.35 : 0 });
+          graph.setPointPositions(randomScatter());
+          graph.start();                             // runs the sim + render loop -> visible motion
+          setEdges(true);
+          status.textContent = `${n.toLocaleString()} nodes · ${edgeCount} edges · simulating…`;
+          settleTimer = setTimeout(() => freeze('settled (force) — drag to pan'), 12000);
+        } else {                                     // grid-repo | grid-comp: fixed, static
+          graph.pause();                             // stop the simulation
+          graph.setConfig({ simulationCluster: 0 });
+          graph.setPointPositions(gridPositions(m === 'grid-repo' ? repoId : clusters), true);
+          setEdges(true);                            // keep relations visible
+          graph.render(0);                           // push the new positions to the GPU (no sim)
+          graph.fitView();
+          status.textContent = `${n.toLocaleString()} nodes · ${edgeCount} edges · grid by ${m === 'grid-repo' ? 'repository' : 'component'} (static)`;
+        }
+      }
+
+      // Default: live simulation (as before), auto-freezing once it settles.
+      status.textContent = `${n.toLocaleString()} nodes · ${edgeCount} edges · simulating…`;
+      settleTimer = setTimeout(() => freeze('settled (force) — drag to pan'), 12000);
+
+      // Cluster toggle: repo cluster force on/off (only meaningful in force mode).
+      $('cluster').onclick = () => {
+        clusterOn = !clusterOn;
+        $('cluster').textContent = clusterOn ? '◉ Cluster' : '◉ Cluster (off)';
+        graph.setPointClusters(clusterOn ? repoClusters : repoId.map(() => undefined));
+        graph.setConfig({ simulationCluster: clusterOn ? 0.35 : 0 });
+        if (mode === 'force') {
+          if (settleTimer) { clearTimeout(settleTimer); settleTimer = null; }
+          graph.start();                             // re-run the sim so the change takes effect
+          settleTimer = setTimeout(() => freeze('settled (force) — drag to pan'), 12000);
+        }
+      };
+      $('layout').onchange = e => setMode(e.target.value);
+      $('pause').onclick = () => { if (settleTimer) { clearTimeout(settleTimer); settleTimer = null; } graph.pause?.(); };
       $('fit').onclick = () => graph.fitView?.();
 
-      // ---- edge visibility toggle (big FPS win zoomed out) ----------------
-      let edgesOn = true;
-      $('edges').onclick = () => {
-        edgesOn = !edgesOn;
-        graph.setConfig?.({ linkWidth: edgesOn ? 0.5 : 0 });
-        $('edges').textContent = edgesOn ? '⛓ Edges' : '⛓ Edges (off)';
+      // ---- edge visibility (auto-set per layout; manual toggle still works) ----
+      function setEdges(on) {
+        edgesOn = on;
+        graph.setConfig({ linkWidth: on ? 0.5 : 0 });
+        $('edges').textContent = on ? '⛓ Edges' : '⛓ Edges (off)';
+      }
+      $('edges').onclick = () => setEdges(!edgesOn);
+
+      // ---- color-by selector (group / repo / namespace) -------------------
+      $('colorBy').onclick = e => e.stopPropagation();
+      $('colorBy').onchange = e => {
+        colorMode = e.target.value;
+        recolor();
+        const tbl = colorMode === 'repo' ? repos : colorMode === 'ns' ? namespaces : null;
+        if (tbl) status.textContent = `coloured by ${colorMode === 'repo' ? 'repository' : 'namespace'} · ${tbl.length} distinct`;
       };
+      if (!repos.length) $('colorBy').querySelector('[value=repo]').disabled = true;
+      if (!namespaces.length) $('colorBy').querySelector('[value=ns]').disabled = true;
 
       // ---- save layout to the server --------------------------------------
       $('save').onclick = async () => {
         try {
-          const pos = graph.getPointPositions?.() || positions;
+          const pos = graph.getPointPositions?.();
+          if (!pos) { status.textContent = 'save unavailable in this build'; return; }
           await fetch('/positions', { method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ positions: Array.from(pos) }) }).then(ok);
@@ -335,7 +433,7 @@ PREFIX prov: <http://www.w3.org/ns/prov#>
         if (q !== lastQ) { lastQ = q; matchPos = 0; }
         let found = -1, seen = 0;
         for (let i = 0; i < n; i++) {
-          if (ids[i].toLowerCase().includes(q)) {
+          if (names[i].toLowerCase().includes(q) || ids[i].toLowerCase().includes(q)) {
             if (seen === matchPos) { found = i; break; }
             seen++;
           }
@@ -356,22 +454,27 @@ PREFIX prov: <http://www.w3.org/ns/prov#>
       const panel = $('details');
       async function showDetails(index) {
         highlightEgo(index);
-        const name = ids[index];
+        const lookup = ids[index];          // localname = /node key
+        const display = names[index];        // human label
         panel.style.display = 'block';
-        panel.innerHTML = `<span class="close">✕</span><h2>${esc(name)}</h2>
+        panel.innerHTML = `<span class="close">✕</span><h2>${esc(display)}</h2>
           <div class="typ">${groupName[groups[index]]} — loading…</div>`;
         panel.querySelector('.close').onclick = () => { panel.style.display = 'none'; clearHighlight(); };
         try {
-          const d = await fetch('/node?id=' + encodeURIComponent(name)).then(ok).then(r => r.json());
+          const d = await fetch('/node?id=' + encodeURIComponent(lookup)).then(ok).then(r => r.json());
           if (d.error) { panel.querySelector('.typ').textContent = '⚠ ' + d.error; return; }
           const edges = (arr, dir) => arr.length
             ? arr.map(e => `<div class="edge">${dir === 'out'
                 ? `<span class="p">${esc(e.p)}</span> → ${esc(e.target)}`
                 : `${esc(e.source)} <span class="p">${esc(e.p)}</span> →`}</div>`).join('')
             : '<div class="edge" style="color:#8b949e">none</div>';
+          const repoNm = repos[repoId[index]], nsNm = namespaces[nsId[index]];
           panel.innerHTML = `<span class="close">✕</span>
-            <h2>${esc(d.id)}</h2>
-            <div class="typ">${esc(d.types?.[0] || groupName[groups[index]])} · ${groupName[groups[index]]}</div>
+            <h2>${esc(display)}</h2>
+            <div class="typ">${esc(d.types?.[0] || groupName[groups[index]])} · ${groupName[groups[index]]} · ${esc(d.id)}</div>
+            ${(repoNm || nsNm) ? `<div class="sec">provenance</div>
+              ${repoNm ? `<div class="edge">repo: <span class="p">${esc(repoNm)}</span></div>` : ''}
+              ${nsNm ? `<div class="edge">namespace: <span class="p">${esc(nsNm)}</span></div>` : ''}` : ''}
             ${d.datasetKey ? `<div class="sec">dataset key</div><div class="key">${esc(d.datasetKey)}</div>` : ''}
             <div class="sec">outgoing (${d.outCount})</div>${edges(d.out, 'out')}
             <div class="sec">incoming (${d.inCount})</div>${edges(d.in, 'in')}`;
