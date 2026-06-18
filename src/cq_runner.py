@@ -16,9 +16,11 @@ Usage:
 Needs only the ABox (kcro-abox.ttl); the TBox is not required for counting.
 """
 import argparse, time
+from pathlib import Path
 from collections import defaultdict
 from rdflib import Graph, RDF, URIRef
 
+ROOT = Path(__file__).resolve().parent.parent   # repo root (src/ is one level down)
 K = "https://w3id.org/kcro#"
 G = "http://purl.org/nemo/gufo#"
 P = "http://www.w3.org/ns/prov#"
@@ -183,7 +185,7 @@ def run_cqs(gr):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--abox", default="kcro-abox.ttl")
+    ap.add_argument("--abox", default=str(ROOT / "ontology" / "kcro-abox.ttl"))
     ap.add_argument("--cqs", action="store_true")
     ap.add_argument("--counts", action="store_true")
     a = ap.parse_args()

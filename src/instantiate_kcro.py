@@ -59,8 +59,11 @@ AI DISCLOSURE
 """
 
 import argparse, hashlib, json, sys
+from pathlib import Path
 import yaml
 from rdflib import Graph, Namespace, URIRef, Literal, RDF, RDFS, OWL
+
+ROOT = Path(__file__).resolve().parent.parent   # repo root (src/ is one level down)
 
 # ---------------------------------------------------------------- namespaces
 KCRO = Namespace("https://w3id.org/kcro#")          # the TBox vocabulary
@@ -452,7 +455,7 @@ def load_repo_meta(path):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--jsonl"); ap.add_argument("--arrow")
-    ap.add_argument("--out", default="kcro-abox.ttl")
+    ap.add_argument("--out", default=str(ROOT / "ontology" / "kcro-abox.ttl"))
     ap.add_argument("--verify", action="store_true")
     a = ap.parse_args()
 

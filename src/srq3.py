@@ -27,6 +27,8 @@ from pathlib import Path
 import instantiate_kcro as ik          # the v0.3.0 pipeline
 from rdflib import Graph
 
+ROOT = Path(__file__).resolve().parent.parent   # repo root (src/ is one level down)
+
 PREFIXES = """PREFIX kcro: <https://w3id.org/kcro#>
 PREFIX gufo: <http://purl.org/nemo/gufo#>
 PREFIX prov: <http://www.w3.org/ns/prov#>
@@ -98,12 +100,13 @@ def flatten(d, prefix=""):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--jsonl")
-    ap.add_argument("--arrow", default="k8s_dataset",
-                    help="HuggingFace Arrow dataset dir (default: k8s_dataset)")
-    ap.add_argument("--analysis", help="security_analysis.json for count diffing")
-    ap.add_argument("--tbox", default="kcro.ttl")
-    ap.add_argument("--out", default="kcro-abox.ttl")
-    ap.add_argument("--report", default="srq3_report.md")
+    ap.add_argument("--arrow", default=str(ROOT / "data" / "k8s_dataset"),
+                    help="HuggingFace Arrow dataset dir (default: data/k8s_dataset)")
+    ap.add_argument("--analysis", default=str(ROOT / "results" / "security_analysis.json"),
+                    help="security_analysis.json for count diffing")
+    ap.add_argument("--tbox", default=str(ROOT / "ontology" / "kcro.ttl"))
+    ap.add_argument("--out", default=str(ROOT / "ontology" / "kcro-abox.ttl"))
+    ap.add_argument("--report", default=str(ROOT / "results" / "srq3_report.md"))
     ap.add_argument("--cqs", action="store_true", help="also execute the 12 CQs (slow on full corpus)")
     a = ap.parse_args()
 

@@ -76,11 +76,12 @@ from datasets import load_from_disk
 # Paths
 # ---------------------------------------------------------------------------
 
-DATASET_DIR    = Path(__file__).parent / "k8s_dataset"
+ROOT           = Path(__file__).resolve().parent.parent   # repo root (src/ is one level down)
+DATASET_DIR    = ROOT / "data" / "k8s_dataset"
 ARROW_FILE     = DATASET_DIR / "data-00000-of-00001.arrow"
-OUTPUT_JSON    = Path(__file__).parent / "security_analysis.json"
-FIGURES_DIR    = Path(__file__).parent / "figures"
-PARSE_LOG      = Path(__file__).parent / "parse_failures.log"
+OUTPUT_JSON    = ROOT / "results" / "security_analysis.json"
+FIGURES_DIR    = ROOT / "results" / "figures"
+PARSE_LOG      = ROOT / "results" / "parse_failures.log"
 
 # ---------------------------------------------------------------------------
 # Workload kinds whose pod template needs security-context inspection.

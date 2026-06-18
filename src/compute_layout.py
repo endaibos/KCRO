@@ -30,9 +30,11 @@ import numpy as np
 import scipy.sparse as sp
 import scipy.sparse.csgraph as csgraph
 
+from pathlib import Path
+RESULTS = Path(__file__).resolve().parent.parent / "results"
 SERVER = "http://localhost:8000/full"
-OUT = "full_positions.bin"        # 3D galaxy (Three.js view)
-OUT_2D = "full_positions_2d.bin"  # 2D repo-grouped fixed layout (Cosmos static view)
+OUT = str(RESULTS / "full_positions.bin")        # 3D galaxy (Three.js view)
+OUT_2D = str(RESULTS / "full_positions_2d.bin")  # 2D repo-grouped fixed layout (Cosmos static view)
 SEED = 7
 
 # Tunables for the look of the galaxy.

@@ -36,13 +36,13 @@ This repository adds five things on top of the KubeObjects corpus:
 
 | Artefact | File(s) | What it is |
 |---|---|---|
-| **KCRO ontology** | [`kcro.ttl`](kcro.ttl) | The OWL 2 DL TBox — **72 classes** covering Kubernetes resources, security aspects, and inter-resource relators, grounded in [gUFO](http://purl.org/nemo/gufo). Thesis: v0.3.0; current file: v0.4.0-draft (adds the provenance terms). |
-| **Knowledge graph** | [`kcro-abox.ttl`](kcro-abox.ttl) | The instantiated ABox. **Thesis-evaluated v0.3.0: 537,947 triples** (see the `v0.3.0` tag). Current v0.4.0 (with provenance): 680,035 triples / 213,708 individuals. |
-| **Mapping pipeline** | [`instantiate_kcro.py`](instantiate_kcro.py) | Deterministic corpus → KG mapper (gUFO `inheresIn`/`mediates` patterns, two-pass reference resolution, provenance). See [MAPPER.md](MAPPER.md). |
-| **Analysis & query tooling** | [`survey.py`](survey.py), [`cq_runner.py`](cq_runner.py), [`srq3.py`](srq3.py) | `survey.py` = the SRQ1 security-field analysis; `cq_runner.py` = the 12 competency-question SPARQL queries, run as fast indexed joins. |
-| **FAIR packaging** | [`kcro.ttl`](kcro.ttl), [`metadata.py`](metadata.py) | Persistent `w3id` IRI, CC BY 4.0 licence, Dublin Core / SKOS metadata in the ontology header. |
+| **KCRO ontology** | [`kcro.ttl`](ontology/kcro.ttl) | The OWL 2 DL TBox — **72 classes** covering Kubernetes resources, security aspects, and inter-resource relators, grounded in [gUFO](http://purl.org/nemo/gufo). Thesis: v0.3.0; current file: v0.4.0-draft (adds the provenance terms). |
+| **Knowledge graph** | [`kcro-abox.ttl`](ontology/kcro-abox.ttl) | The instantiated ABox. **Thesis-evaluated v0.3.0: 537,947 triples** (see the `v0.3.0` tag). Current v0.4.0 (with provenance): 680,035 triples / 213,708 individuals. |
+| **Mapping pipeline** | [`instantiate_kcro.py`](src/instantiate_kcro.py) | Deterministic corpus → KG mapper (gUFO `inheresIn`/`mediates` patterns, two-pass reference resolution, provenance). See [MAPPER.md](MAPPER.md). |
+| **Analysis & query tooling** | [`survey.py`](src/survey.py), [`cq_runner.py`](src/cq_runner.py), [`srq3.py`](src/srq3.py) | `survey.py` = the SRQ1 security-field analysis; `cq_runner.py` = the 12 competency-question SPARQL queries, run as fast indexed joins. |
+| **FAIR packaging** | [`kcro.ttl`](ontology/kcro.ttl), [`metadata.py`](corpus/metadata.py) | Persistent `w3id` IRI, CC BY 4.0 licence, Dublin Core / SKOS metadata in the ontology header. |
 
-Optional: an interactive **KG explorer** ([`kcro_server.py`](kcro_server.py) +
+Optional: an interactive **KG explorer** ([`kcro_server.py`](src/kcro_server.py) +
 the `*_visualizer.html` views) — a local SPARQL-backed browser and a GPU
 rendering of the full 210k-node graph.
 
@@ -66,22 +66,25 @@ an in-scope KCRO class; the rest are the open long tail (CRDs, etc.).
 ## Reproduce
 
 Requires Python 3 and the dependencies in [`requirements.txt`](requirements.txt)
-(plus `datasets`, `rdflib`). The corpus (`k8s_dataset/`, a HuggingFace Arrow
-dataset) is produced by KubeObjects — see its repository to rebuild it; the steps
-below start from that corpus.
+(plus `datasets`, `rdflib`). The corpus lives in `data/k8s_dataset/` (a HuggingFace
+Arrow dataset produced by KubeObjects — see its repository to rebuild it). Run from
+the repo root; paths default to the new layout (`ontology/`, `data/`, `results/`).
 
 ```bash
-# 1. SRQ1 — security-field analysis of the corpus  → security_analysis.json
-python survey.py --security
+# 1. SRQ1 — security-field analysis of the corpus   → results/security_analysis.json
+python src/survey.py --security
 
-# 2. Build the knowledge graph (corpus → ABox)     → kcro-abox.ttl
-python instantiate_kcro.py --arrow k8s_dataset --out kcro-abox.ttl --verify
+# 2. Build the knowledge graph (corpus → ABox)      → ontology/kcro-abox.ttl
+python src/instantiate_kcro.py --arrow data/k8s_dataset --verify
 
 # 3. Run the 12 competency questions (SRQ3)
-python cq_runner.py --abox kcro-abox.ttl --cqs
+python src/cq_runner.py --cqs
 
 #   ...or the one-shot full report (coverage, KG size, count diff, CQs):
-python srq3.py --arrow k8s_dataset --analysis security_analysis.json --cqs --tbox kcro.ttl
+python src/srq3.py --cqs
+
+# Explorer (optional): serves web/ + SPARQL over the ABox at http://localhost:8000
+python src/kcro_server.py
 ```
 
 `instantiate_kcro.py` is deterministic (content-addressed IRIs), so a re-run

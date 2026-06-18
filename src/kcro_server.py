@@ -34,17 +34,20 @@ from collections import defaultdict
 
 from rdflib import RDF, RDFS, Graph, Namespace, URIRef
 
-HERE = Path(__file__).resolve().parent
-ABOX = HERE / "kcro-abox.ttl"
-HTML = HERE / "hero_visualizer.html"
+ROOT = Path(__file__).resolve().parent.parent   # repo root (src/ is one level down)
+ONT = ROOT / "ontology"
+WEB = ROOT / "web"
+RESULTS = ROOT / "results"
+ABOX = ONT / "kcro-abox.ttl"
+HTML = WEB / "hero_visualizer.html"
 PORT = 8000
 
-# Extra static files served by path -> (filesystem name, content-type).
+# Extra static files served by path -> (filesystem Path, content-type).
 STATIC = {
-    "/full2d": ("full_2d_visualizer.html", "text/html; charset=utf-8"),
-    "/full3d": ("full_3d_visualizer.html", "text/html; charset=utf-8"),
-    "/full_positions.bin": ("full_positions.bin", "application/octet-stream"),
-    "/full_positions_2d.bin": ("full_positions_2d.bin", "application/octet-stream"),
+    "/full2d": (WEB / "full_2d_visualizer.html", "text/html; charset=utf-8"),
+    "/full3d": (WEB / "full_3d_visualizer.html", "text/html; charset=utf-8"),
+    "/full_positions.bin": (RESULTS / "full_positions.bin", "application/octet-stream"),
+    "/full_positions_2d.bin": (RESULTS / "full_positions_2d.bin", "application/octet-stream"),
 }
 
 GUFO = Namespace("http://purl.org/nemo/gufo#")
@@ -339,7 +342,7 @@ def run_sparql(query: str) -> dict:
 
 
 # ---------------------------------------------------------------- layout store
-POS_FILE = HERE / "layout_positions.json"
+POS_FILE = RESULTS / "layout_positions.json"
 
 
 def save_positions(payload: dict) -> dict:
@@ -415,10 +418,9 @@ class Handler(BaseHTTPRequestHandler):
             else:
                 self._send(200, node_details(name))
         elif path in STATIC:
-            name, ctype = STATIC[path]
-            fp = HERE / name
+            fp, ctype = STATIC[path]
             if not fp.exists():
-                self._send(404, {"error": f"{name} not found — "
+                self._send(404, {"error": f"{fp.name} not found — "
                                  "run compute_layout.py for full_positions.bin"})
             else:
                 self._send(200, fp.read_bytes(), content_type=ctype)
