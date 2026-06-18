@@ -102,20 +102,21 @@ corpus:
   title        = {KCRO: Kubernetes Cybersecurity Research Ontology},
   year         = {2026},
   howpublished = {\url{https://w3id.org/kcro}},
-  note         = {Code: \url{https://github.com/endaibos/KCRO}. ORCID: <ADD ORCID>}
+  note         = {Code: \url{https://github.com/endaibos/KCRO}. ORCID: 0009-0000-0969-772X}
 }
 
 @misc{kubeobjects2026,
-  author       = {Grella, <ADD AUTHORS>},
+  author       = {Grella and Aliforenko and Mariot},
   title        = {KubeObjects: A Dataset of Real-World Kubernetes Objects},
   year         = {2026},
   howpublished = {\url{https://github.com/TheGrella/KubeObjects}},
-  note         = {DOI: <ADD DOI>}
+  note         = {MSR 2026. DOI: 10.1145/3793302.3793317}
 }
 ```
 
-> Placeholders `<ADD …>` — fill in your ORCID, the KubeObjects author list and
-> paper DOI, and the final thesis citation before publishing.
+> The KubeObjects `@misc` above is for repo convenience. In a paper, cite the
+> published MSR proceedings entry (`@inproceedings`, DOI `10.1145/3793302.3793317`)
+> rather than this GitHub-URL form.
 
 - **Ontology IRI:** <https://w3id.org/kcro> (persistent; resolves to the repo's `main`)
 - **Author:** A. Dorneanu, University of Twente
