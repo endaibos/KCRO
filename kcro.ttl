@@ -9,7 +9,6 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix vann: <http://purl.org/vocab/vann/> .
-@prefix prov: <http://www.w3.org/ns/prov#> .
 @base <https://w3id.org/kcro#> .
 
 <https://w3id.org/kcro> rdf:type owl:Ontology ;
@@ -29,7 +28,7 @@ literature grounding are the author's. Claude (Anthropic) was used as an assista
 and refactoring (the v0.3.0 meta-typing and existential bearer restrictions), for formalising and
 executing the competency-question SPARQL queries, and for documentation. All AI-assisted changes were reviewed by the author; OWL 2 DL consistency was verified by the author with HermiT in Protege."""@en ;
                          owl:versionIRI <https://w3id.org/kcro/0.3.0> ;
-                         owl:versionInfo "0.4.0-draft" ;
+                         owl:versionInfo "0.3.0-draft" ;
                          dcterms:issued "2026-06-10"^^xsd:date ;
                          dcterms:modified "2026-06-15"^^xsd:date ;
                          dcterms:description "An OWL 2 DL ontology of Kubernetes security misconfigurations, grounded in gUFO and the KubeObjects corpus of 75,390 real-world manifests. KCRO models 17 in-scope resource kinds, 24 empirically grounded security-field patterns (split into omission and commission vulnerabilities), and 18 inter-resource relationship types reified as relators, with a COVER-style risk layer."@en ;
@@ -1391,53 +1390,3 @@ kcro:ImageTagMissing rdfs:comment "The image-tag quality of a container whose im
 kcro:ThreatIntelDescriptor rdfs:comment "An information object that describes a KCRO entity in terms of an external threat-intelligence vocabulary (UCO, STIX, CWE), providing an attachment point for alignment without asserting class equivalence."@en .
 kcro:causesLoss rdfs:comment "Relates a threat event to the loss event it brings about, following the COVER risk pattern."@en .
 kcro:cweId rdfs:comment "Associates a KCRO vulnerability class with the identifier of the corresponding Common Weakness Enumeration (CWE) entry, where one applies."@en .
-
-
-#################################################################
-#    KCRO v0.4.0 — provenance extension (source repository + namespace)
-#    Links each corpus object/container to the GitHub repository it was mined
-#    from (PROV-O) and records its namespace, enabling provenance queries (CQ12)
-#    and grouping the graph by repository / namespace.
-#################################################################
-
-###  https://w3id.org/kcro#Repository
-kcro:Repository rdf:type owl:Class ;
-                rdfs:subClassOf kcro:InformationObject ;
-                rdfs:label "Repository"@en ;
-                rdfs:comment "A source code repository (e.g. a GitHub repo) a Kubernetes manifest was mined from. A social/information artifact; also a prov:Entity."@en .
-
-
-###  http://www.w3.org/ns/prov#wasDerivedFrom
-prov:wasDerivedFrom rdf:type owl:ObjectProperty ;
-                    rdfs:range kcro:Repository ;
-                    rdfs:label "was derived from"@en ;
-                    rdfs:comment "Provenance (reused from PROV-O): the Kubernetes object or container was extracted from this source repository."@en .
-
-
-###  https://w3id.org/kcro#namespace
-kcro:namespace rdf:type owl:DatatypeProperty ;
-               rdfs:domain kcro:KubernetesObject ;
-               rdfs:range xsd:string ;
-               rdfs:label "namespace"@en ;
-               rdfs:comment "The Kubernetes namespace the object was declared in ('default' when unset)."@en .
-
-
-###  https://w3id.org/kcro#repoStars
-kcro:repoStars rdf:type owl:DatatypeProperty ;
-               rdfs:domain kcro:Repository ;
-               rdfs:range xsd:integer ;
-               rdfs:label "repo stars"@en .
-
-
-###  https://w3id.org/kcro#repoForks
-kcro:repoForks rdf:type owl:DatatypeProperty ;
-               rdfs:domain kcro:Repository ;
-               rdfs:range xsd:integer ;
-               rdfs:label "repo forks"@en .
-
-
-###  https://w3id.org/kcro#repoLanguage
-kcro:repoLanguage rdf:type owl:DatatypeProperty ;
-                  rdfs:domain kcro:Repository ;
-                  rdfs:range xsd:string ;
-                  rdfs:label "repo language"@en .
