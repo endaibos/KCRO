@@ -1,0 +1,1392 @@
+@prefix : <https://w3id.org/kcro#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix kcro: <https://w3id.org/kcro#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix vann: <http://purl.org/vocab/vann/> .
+@base <https://w3id.org/kcro#> .
+
+<https://w3id.org/kcro> rdf:type owl:Ontology ;
+                         owl:imports <http://purl.org/nemo/gufo> ;
+                         dcterms:creator <https://orcid.org/0009-0000-0969-772X> ;
+                         dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
+                         dcterms:title "KCRO: Kubernetes Cybersecurity Research Ontology"@en ;
+                         rdfs:comment """A security-focused domain ontology for Kubernetes, grounded in the
+gUFO lightweight implementation of the Unified Foundational Ontology. The three
+structural metrics extracted from the KubeObjects corpus map onto the three gUFO
+endurant categories: resource kinds -> substantials (gufo:Object), security fields
+-> intrinsic aspects (gufo:Quality / gufo:IntrinsicMode), inter-resource relationships
+-> relators (gufo:Relator). The risk layer follows the COVER pattern of treating a
+vulnerability as a special disposition."""@en ;
+                         skos:editorialNote """AI-use disclosure: the ontology's scope, design decisions, and
+literature grounding are the author's. Claude (Anthropic) was used as an assistant for ontology review
+and refactoring (the v0.3.0 meta-typing and existential bearer restrictions), for formalising and
+executing the competency-question SPARQL queries, and for documentation. All AI-assisted changes were reviewed by the author; OWL 2 DL consistency was verified by the author with HermiT in Protege."""@en ;
+                         owl:versionIRI <https://w3id.org/kcro/0.3.0> ;
+                         owl:versionInfo "0.3.0-draft" ;
+                         dcterms:issued "2026-06-10"^^xsd:date ;
+                         dcterms:modified "2026-06-15"^^xsd:date ;
+                         dcterms:description "An OWL 2 DL ontology of Kubernetes security misconfigurations, grounded in gUFO and the KubeObjects corpus of 75,390 real-world manifests. KCRO models 17 in-scope resource kinds, 24 empirically grounded security-field patterns (split into omission and commission vulnerabilities), and 18 inter-resource relationship types reified as relators, with a COVER-style risk layer."@en ;
+                         dcterms:publisher "University of Twente"@en ;
+                         vann:preferredNamespacePrefix "kcro" ;
+                         vann:preferredNamespaceUri "https://w3id.org/kcro#" ;
+                         rdfs:seeAlso <https://github.com/endaibos/KCRO> .
+
+#################################################################
+#    Annotation properties
+#################################################################
+
+###  http://purl.org/dc/terms/creator
+dcterms:creator rdf:type owl:AnnotationProperty .
+
+
+###  http://purl.org/dc/terms/source
+dcterms:source rdf:type owl:AnnotationProperty .
+
+
+###  http://purl.org/dc/terms/title
+dcterms:title rdf:type owl:AnnotationProperty .
+
+
+
+###  http://purl.org/vocab/vann/preferredNamespacePrefix
+vann:preferredNamespacePrefix rdf:type owl:AnnotationProperty .
+
+
+###  http://purl.org/vocab/vann/preferredNamespaceUri
+vann:preferredNamespaceUri rdf:type owl:AnnotationProperty .
+
+###  http://www.w3.org/2004/02/skos/core#editorialNote
+skos:editorialNote rdf:type owl:AnnotationProperty .
+
+
+###  http://www.w3.org/2004/02/skos/core#note
+skos:note rdf:type owl:AnnotationProperty .
+
+
+###  http://www.w3.org/2004/02/skos/core#scopeNote
+skos:scopeNote rdf:type owl:AnnotationProperty .
+
+
+###  https://w3id.org/kcro#corpusCount
+kcro:corpusCount rdf:type owl:AnnotationProperty ;
+                 rdfs:comment "Number of objects/manifests exhibiting this finding in the KubeObjects corpus (75,390 deduplicated objects)."@en ;
+                 rdfs:label "corpus count"@en .
+
+
+###  https://w3id.org/kcro#datasetKey
+kcro:datasetKey rdf:type owl:AnnotationProperty ;
+                rdfs:comment "The exact field label produced by survey.py --security in security_analysis.json."@en ;
+                rdfs:label "dataset key"@en .
+
+
+###  https://w3id.org/kcro#groundingNote
+kcro:groundingNote rdf:type owl:AnnotationProperty ;
+                   rdfs:comment "Honest record of which cited source supports this field. Where a field is NOT explicitly enumerated in a source, this is stated so the claim is not overstated."@en ;
+                   rdfs:label "grounding note"@en .
+
+
+#################################################################
+#    Object Properties
+#################################################################
+
+###  https://w3id.org/kcro#causesLoss
+kcro:causesLoss rdf:type owl:ObjectProperty ;
+                rdfs:domain kcro:ThreatEvent ;
+                rdfs:range kcro:LossEvent ;
+                rdfs:label "causes loss"@en .
+
+
+###  https://w3id.org/kcro#describedBy
+kcro:describedBy rdf:type owl:ObjectProperty ;
+                 rdfs:range kcro:InformationObject ;
+                 rdfs:comment "Links a world entity (e.g. a Vulnerability) to a descriptor (e.g. a STIX/CVE/CWE record). Keeps the descriptor distinct from the truthmaker."@en ;
+                 rdfs:label "described by"@en .
+
+
+###  https://w3id.org/kcro#exploits
+kcro:exploits rdf:type owl:ObjectProperty ;
+              rdfs:domain kcro:ThreatCapability ;
+              rdfs:range kcro:Vulnerability ;
+              rdfs:comment "A threat capability is able to take advantage of a vulnerability."@en ;
+              rdfs:label "exploits"@en .
+
+
+###  https://w3id.org/kcro#hasSecurityAspect
+kcro:hasSecurityAspect rdf:type owl:ObjectProperty ;
+                       owl:inverseOf gufo:inheresIn ;
+                       rdfs:domain gufo:Endurant ;
+                       rdfs:range gufo:Aspect ;
+                       rdfs:comment "Named inverse of gufo:inheresIn, from a bearer to the qualities/dispositions inhering in it. Declared explicitly to avoid an anonymous inverse expression."@en ;
+                       rdfs:label "has security aspect"@en .
+
+
+###  https://w3id.org/kcro#manifestedThrough
+kcro:manifestedThrough rdf:type owl:ObjectProperty ;
+                       rdfs:subPropertyOf gufo:manifestedIn ;
+                       rdfs:domain kcro:Vulnerability ;
+                       rdfs:range kcro:ThreatEvent ;
+                       rdfs:comment "Links a vulnerability disposition to the event in which it is manifested."@en ;
+                       rdfs:label "manifested through"@en .
+
+
+#################################################################
+#    Data properties
+#################################################################
+
+###  https://w3id.org/kcro#cweId
+kcro:cweId rdf:type owl:DatatypeProperty ;
+           rdfs:domain kcro:Vulnerability ;
+           rdfs:range xsd:string ;
+           rdfs:label "CWE id"@en ;
+           skos:editorialNote "TODO: attach CWE identifiers to each vulnerability class (e.g. CWE-269 for privilege management, CWE-250 execution with unnecessary privileges, CWE-319 cleartext transmission for AbsentIngressTLS)." .
+
+
+#################################################################
+#    Classes
+#################################################################
+
+###  https://w3id.org/kcro#AbsentIngressTLS
+kcro:AbsentIngressTLS rdf:type owl:Class ;
+                      rdfs:subClassOf kcro:VulnerabilityByOmission ,
+                [ rdf:type owl:Restriction ;
+                  owl:onProperty gufo:inheresIn ;
+                  owl:someValuesFrom kcro:Ingress
+                ] ;
+                      dcterms:source kcro:Rahman2024 ;
+                      rdfs:label "Absent Ingress TLS"@en ;
+                      kcro:corpusCount 608 ;
+                      kcro:datasetKey "ingress.tls=missing" ;
+                      kcro:groundingNote "Maps to Rahman 2024's 'Insecure HTTP' (transport without TLS), applied at the Ingress." .
+
+
+###  https://w3id.org/kcro#AbsentResourceLimit
+kcro:AbsentResourceLimit rdf:type owl:Class ;
+                         rdfs:subClassOf kcro:VulnerabilityByOmission ,
+                [ rdf:type owl:Restriction ;
+                  owl:onProperty gufo:inheresIn ;
+                  owl:someValuesFrom kcro:Container
+                ] ;
+                         dcterms:source kcro:Rahman2024 ;
+                         rdfs:label "Absent Resource Limit"@en ;
+                         kcro:corpusCount 14195 ;
+                         kcro:datasetKey "container.resources.limits=missing" ;
+                         kcro:groundingNote "Explicit in Rahman 2024 ('Absent Resource Limit'). Highest-prevalence omission in the corpus." .
+
+
+###  https://w3id.org/kcro#AbsentRunAsNonRoot
+kcro:AbsentRunAsNonRoot rdf:type owl:Class ;
+                        rdfs:subClassOf kcro:VulnerabilityByOmission ,
+                [ rdf:type owl:Restriction ;
+                  owl:onProperty gufo:inheresIn ;
+                  owl:someValuesFrom kcro:Pod
+                ] ;
+                        dcterms:source kcro:Rahman2024 ;
+                        rdfs:label "Absent runAsNonRoot"@en ;
+                        kcro:corpusCount 12720 ;
+                        kcro:datasetKey "pod.securityContext.runAsNonRoot=missing" ;
+                        kcro:groundingNote "Within Rahman 2024's 'Absent securityContext'. Resolvable to confirmed-root by joining with image USER metadata (future work)." .
+
+
+###  https://w3id.org/kcro#AddedLinuxCapabilities
+kcro:AddedLinuxCapabilities rdf:type owl:Class ;
+                            rdfs:subClassOf kcro:VulnerabilityByCommission ,
+                [ rdf:type owl:Restriction ;
+                  owl:onProperty gufo:inheresIn ;
+                  owl:someValuesFrom kcro:Container
+                ] ;
+                            dcterms:source kcro:Rahman2024 ;
+                            rdfs:label "Added Linux Capabilities"@en ;
+                            kcro:corpusCount 493 ;
+                            kcro:datasetKey "container.capabilities.add=set" ;
+                            kcro:groundingNote "Rahman 2024 ('Capability Misuse'); Rahman flags CAP_SYS_ADMIN / CAP_SYS_MODULE specifically — corpus check is broader (any added capability)." .
+
+
+###  https://w3id.org/kcro#AutomountTokenEnabled
+kcro:AutomountTokenEnabled rdf:type owl:Class ;
+                           rdfs:subClassOf kcro:VulnerabilityByOmission ,
+                [ rdf:type owl:Restriction ;
+                  owl:onProperty gufo:inheresIn ;
+                  owl:someValuesFrom kcro:Pod
+                ] ;
+                           dcterms:source kcro:CISBenchmark ;
+                           rdfs:label "ServiceAccount Token Automount Not Disabled"@en ;
+                           kcro:corpusCount 13365 ;
+                           kcro:datasetKey "pod.automountServiceAccountToken=missing" ;
+                           kcro:groundingNote "Insecure default (token mounted unless explicitly disabled). NOT in Rahman 2024. Grounded in CIS Kubernetes Benchmark v1.5.1 control 5.1.6 (Service Account Tokens only mounted where necessary); the CIS remediation for 5.1.5 likewise prescribes automountServiceAccountToken: false. Verified 2026-06-10 against KGSecConfig (Haque 2022): the paper mines component-level secured-configuration knowledge from official documentation and does not enumerate this manifest-level pattern, so it is not cited." .
+
+
+###  https://w3id.org/kcro#ClusterAdminBinding
+kcro:ClusterAdminBinding rdf:type owl:Class ;
+                         rdfs:subClassOf kcro:VulnerabilityByCommission ,
+                [ rdf:type owl:Restriction ;
+                  owl:onProperty gufo:inheresIn ;
+                  owl:someValuesFrom kcro:KubernetesRelation
+                ] ;
+                         dcterms:source kcro:Aliforenko2025 ,
+                                        kcro:CISBenchmark ;
+                         rdfs:comment "This vulnerability inheres in a binding relator (a KubernetesRelation), not in a plain object; see the worked-example individuals exampleAdminVuln and exampleBinding."@en ;
+                         rdfs:label "cluster-admin Binding"@en ;
+                         kcro:corpusCount 101 ;
+                         kcro:datasetKey "binding.roleRef.name=cluster-admin" ;
+                         kcro:groundingNote "Binding a subject to cluster-admin. Grounded in CIS Kubernetes Benchmark v1.5.1 control 5.1.1 (cluster-admin role only used where required); flagged as a privilege-escalation concern in Aliforenko 2025. Verified 2026-06-10 against KGSecConfig (Haque 2022): the paper mines component-level secured-configuration knowledge from official documentation and does not enumerate this manifest-level pattern, so it is not cited." .
+
+
+###  https://w3id.org/kcro#ClusterIPExposure
+kcro:ClusterIPExposure rdf:type owl:Class ;
+                       rdfs:subClassOf kcro:ServiceExposureLevel ;
+                       rdfs:label "ClusterIP (internal only)"@en ;
+                       skos:note "Safe default — internal only. Recorded for completeness, not a misconfiguration." ;
+                       kcro:corpusCount 12011 ;
+                       kcro:datasetKey "service.type=ClusterIP" .
+
+
+###  https://w3id.org/kcro#ClusterRole
+kcro:ClusterRole rdf:type owl:Class ;
+                 rdfs:subClassOf kcro:PermissionResource .
+
+
+###  https://w3id.org/kcro#ClusterRoleBinding
+kcro:ClusterRoleBinding rdf:type owl:Class ;
+                        rdfs:subClassOf kcro:KubernetesRelation .
+
+
+###  https://w3id.org/kcro#ConfigMap
+kcro:ConfigMap rdf:type owl:Class ;
+               rdfs:subClassOf kcro:DataResource .
+
+
+###  https://w3id.org/kcro#Container
+kcro:Container rdf:type owl:Class ;
+               rdfs:subClassOf kcro:WorkloadResource .
+
+
+###  https://w3id.org/kcro#ContainerImage
+kcro:ContainerImage rdf:type owl:Class ;
+                    rdfs:subClassOf kcro:WorkloadResource .
+
+
+###  https://w3id.org/kcro#ContainerRunAsRoot
+kcro:ContainerRunAsRoot rdf:type owl:Class ;
+                        rdfs:subClassOf kcro:VulnerabilityByCommission ,
+                [ rdf:type owl:Restriction ;
+                  owl:onProperty gufo:inheresIn ;
+                  owl:someValuesFrom kcro:Container
+                ] ;
+                        dcterms:source kcro:Rahman2024 ;
+                        rdfs:label "Container Runs As Root"@en ;
+                        kcro:corpusCount 297 ;
+                        kcro:datasetKey "container.securityContext.runAsUser=0" ;
+                        kcro:groundingNote "Within Rahman 2024's securityContext family; runAsUser=0 as an explicit value is a refinement of that category." .
+
+
+###  https://w3id.org/kcro#CronJob
+kcro:CronJob rdf:type owl:Class ;
+             rdfs:subClassOf kcro:WorkloadResource .
+
+
+###  https://w3id.org/kcro#DaemonSet
+kcro:DaemonSet rdf:type owl:Class ;
+               rdfs:subClassOf kcro:WorkloadResource .
+
+
+###  https://w3id.org/kcro#DataResource
+kcro:DataResource rdf:type owl:Class ;
+                  rdfs:subClassOf kcro:KubernetesObject .
+
+
+###  https://w3id.org/kcro#DefaultServiceAccount
+kcro:DefaultServiceAccount rdf:type owl:Class ;
+                           rdfs:subClassOf kcro:VulnerabilityByOmission ,
+                [ rdf:type owl:Restriction ;
+                  owl:onProperty gufo:inheresIn ;
+                  owl:someValuesFrom kcro:Pod
+                ] ;
+                           dcterms:source kcro:CISBenchmark ;
+                           rdfs:label "Default ServiceAccount Used"@en ;
+                           kcro:corpusCount 8122 ;
+                           kcro:datasetKey "pod.serviceAccount=default" ;
+                           kcro:groundingNote "No dedicated ServiceAccount declared. NOT in Rahman 2024. Grounded in CIS Kubernetes Benchmark v1.5.1 control 5.1.5 (default service accounts not actively used). Verified 2026-06-10 against KGSecConfig (Haque 2022): the paper mines component-level secured-configuration knowledge from official documentation and does not enumerate this manifest-level pattern, so it is not cited." .
+
+
+###  https://w3id.org/kcro#Deployment
+kcro:Deployment rdf:type owl:Class ;
+                rdfs:subClassOf kcro:WorkloadResource .
+
+
+###  https://w3id.org/kcro#EnvReference
+kcro:EnvReference rdf:type owl:Class ;
+                  rdfs:subClassOf kcro:KubernetesRelation .
+
+
+###  https://w3id.org/kcro#ExternalNameExposure
+kcro:ExternalNameExposure rdf:type owl:Class ;
+                          rdfs:subClassOf kcro:ServiceExposureLevel ;
+                          rdfs:label "ExternalName (external alias)"@en ;
+                          kcro:corpusCount 21 ;
+                          kcro:datasetKey "service.type=ExternalName" .
+
+
+###  https://w3id.org/kcro#HostIPCPod
+kcro:HostIPCPod rdf:type owl:Class ;
+                rdfs:subClassOf kcro:VulnerabilityByCommission ,
+                [ rdf:type owl:Restriction ;
+                  owl:onProperty gufo:inheresIn ;
+                  owl:someValuesFrom kcro:Pod
+                ] ;
+                dcterms:source kcro:Rahman2024 ;
+                rdfs:label "Host IPC Pod"@en ;
+                kcro:corpusCount 8 ;
+                kcro:datasetKey "pod.hostIPC=true" ;
+                kcro:groundingNote "Explicit in Rahman 2024 ('Activation of hostIPC')." .
+
+
+###  https://w3id.org/kcro#HostNetworkPod
+kcro:HostNetworkPod rdf:type owl:Class ;
+                    rdfs:subClassOf kcro:VulnerabilityByCommission ,
+                [ rdf:type owl:Restriction ;
+                  owl:onProperty gufo:inheresIn ;
+                  owl:someValuesFrom kcro:Pod
+                ] ;
+                    dcterms:source kcro:Rahman2024 ;
+                    rdfs:label "Host Network Pod"@en ;
+                    kcro:corpusCount 503 ;
+                    kcro:datasetKey "pod.hostNetwork=true" ;
+                    kcro:groundingNote "Explicit in Rahman 2024 ('Activation of hostNetwork')." .
+
+
+###  https://w3id.org/kcro#HostPIDPod
+kcro:HostPIDPod rdf:type owl:Class ;
+                rdfs:subClassOf kcro:VulnerabilityByCommission ,
+                [ rdf:type owl:Restriction ;
+                  owl:onProperty gufo:inheresIn ;
+                  owl:someValuesFrom kcro:Pod
+                ] ;
+                dcterms:source kcro:Rahman2024 ;
+                rdfs:label "Host PID Pod"@en ;
+                kcro:corpusCount 260 ;
+                kcro:datasetKey "pod.hostPID=true" ;
+                kcro:groundingNote "Explicit in Rahman 2024 ('Activation of hostPID')." .
+
+
+###  https://w3id.org/kcro#IdentityAssignment
+kcro:IdentityAssignment rdf:type owl:Class ;
+                        rdfs:subClassOf kcro:KubernetesRelation .
+
+
+###  https://w3id.org/kcro#IdentityResource
+kcro:IdentityResource rdf:type owl:Class ;
+                      rdfs:subClassOf kcro:KubernetesObject .
+
+
+###  https://w3id.org/kcro#ImageReference
+kcro:ImageReference rdf:type owl:Class ;
+                    rdfs:subClassOf kcro:KubernetesRelation .
+
+
+###  https://w3id.org/kcro#ImageTagLatest
+kcro:ImageTagLatest rdf:type owl:Class ;
+                    rdfs:subClassOf kcro:ImageTagPolicy ;
+                    rdfs:label "Image Tag = latest"@en ;
+                    skos:note "Modeled as a quality phase, not a Vulnerability: like ServiceExposureLevel, it is risk-contributing (provenance/reproducibility) rather than directly exploitable." ;
+                    kcro:corpusCount 1974 ;
+                    kcro:datasetKey "container.image.tag=latest" .
+
+
+###  https://w3id.org/kcro#ImageTagMissing
+kcro:ImageTagMissing rdf:type owl:Class ;
+                     rdfs:subClassOf kcro:ImageTagPolicy ;
+                     rdfs:label "Image Tag Missing"@en ;
+                     skos:note "Modeled as a quality phase, not a Vulnerability: like ServiceExposureLevel, it is risk-contributing (provenance/reproducibility) rather than directly exploitable." ;
+                     kcro:corpusCount 2898 ;
+                     kcro:datasetKey "container.image.tag=missing" .
+
+
+###  https://w3id.org/kcro#ImageTagPolicy
+kcro:ImageTagPolicy rdf:type owl:Class ;
+                    rdfs:subClassOf kcro:SecurityQuality ,
+                                    [ rdf:type owl:Restriction ;
+                                      owl:onProperty gufo:inheresIn ;
+                                      owl:someValuesFrom kcro:Container
+                                    ] .
+
+
+###  https://w3id.org/kcro#InformationObject
+kcro:InformationObject rdf:type owl:Class ;
+                       rdfs:subClassOf gufo:Object .
+
+
+###  https://w3id.org/kcro#Ingress
+kcro:Ingress rdf:type owl:Class ;
+             rdfs:subClassOf kcro:NetworkResource .
+
+
+###  https://w3id.org/kcro#IngressBackend
+kcro:IngressBackend rdf:type owl:Class ;
+                    rdfs:subClassOf kcro:KubernetesRelation .
+
+
+###  https://w3id.org/kcro#Job
+kcro:Job rdf:type owl:Class ;
+         rdfs:subClassOf kcro:WorkloadResource .
+
+
+###  https://w3id.org/kcro#KubernetesObject
+kcro:KubernetesObject rdf:type owl:Class ;
+                      rdfs:subClassOf gufo:Object .
+
+
+###  https://w3id.org/kcro#KubernetesRelation
+kcro:KubernetesRelation rdf:type owl:Class ;
+                        rdfs:subClassOf gufo:Relator .
+
+
+###  https://w3id.org/kcro#LoadBalancerExposure
+kcro:LoadBalancerExposure rdf:type owl:Class ;
+                          rdfs:subClassOf kcro:ServiceExposureLevel ;
+                          rdfs:label "LoadBalancer (internet-exposed)"@en ;
+                          kcro:corpusCount 599 ;
+                          kcro:datasetKey "service.type=LoadBalancer" .
+
+
+###  https://w3id.org/kcro#LossEvent
+kcro:LossEvent rdf:type owl:Class ;
+               rdfs:subClassOf gufo:Event ;
+               owl:disjointWith kcro:ThreatEvent .
+
+
+###  https://w3id.org/kcro#NetworkPolicy
+kcro:NetworkPolicy rdf:type owl:Class ;
+                   rdfs:subClassOf kcro:NetworkResource .
+
+
+###  https://w3id.org/kcro#NetworkPolicyScope
+kcro:NetworkPolicyScope rdf:type owl:Class ;
+                        rdfs:subClassOf kcro:KubernetesRelation .
+
+
+###  https://w3id.org/kcro#NetworkResource
+kcro:NetworkResource rdf:type owl:Class ;
+                     rdfs:subClassOf kcro:KubernetesObject .
+
+
+###  https://w3id.org/kcro#NodePortExposure
+kcro:NodePortExposure rdf:type owl:Class ;
+                      rdfs:subClassOf kcro:ServiceExposureLevel ;
+                      rdfs:label "NodePort (node-exposed)"@en ;
+                      kcro:corpusCount 590 ;
+                      kcro:datasetKey "service.type=NodePort" .
+
+
+###  https://w3id.org/kcro#PermissionResource
+kcro:PermissionResource rdf:type owl:Class ;
+                        rdfs:subClassOf kcro:KubernetesObject .
+
+
+###  https://w3id.org/kcro#Pod
+kcro:Pod rdf:type owl:Class ;
+         rdfs:subClassOf kcro:WorkloadResource .
+
+
+###  https://w3id.org/kcro#PodRunAsRoot
+kcro:PodRunAsRoot rdf:type owl:Class ;
+                  rdfs:subClassOf kcro:VulnerabilityByCommission ,
+                [ rdf:type owl:Restriction ;
+                  owl:onProperty gufo:inheresIn ;
+                  owl:someValuesFrom kcro:Pod
+                ] ;
+                  dcterms:source kcro:Rahman2024 ;
+                  rdfs:label "Pod Runs As Root"@en ;
+                  kcro:corpusCount 234 ;
+                  kcro:datasetKey "pod.securityContext.runAsUser=0" ;
+                  kcro:groundingNote "Pod-level counterpart of the above; same securityContext family." .
+
+
+###  https://w3id.org/kcro#PrivilegeEscalationAllowed
+kcro:PrivilegeEscalationAllowed rdf:type owl:Class ;
+                                rdfs:subClassOf kcro:VulnerabilityByCommission ,
+                [ rdf:type owl:Restriction ;
+                  owl:onProperty gufo:inheresIn ;
+                  owl:someValuesFrom kcro:Container
+                ] ;
+                                dcterms:source kcro:Rahman2024 ;
+                                rdfs:label "Privilege Escalation Allowed"@en ;
+                                kcro:corpusCount 103 ;
+                                kcro:datasetKey "container.securityContext.allowPrivilegeEscalation=true" ;
+                                kcro:groundingNote "Explicit in Rahman 2024 ('Escalated Privileges for Child Container Processes')." .
+
+
+###  https://w3id.org/kcro#PrivilegedContainer
+kcro:PrivilegedContainer rdf:type owl:Class ;
+                         rdfs:subClassOf kcro:VulnerabilityByCommission ,
+                [ rdf:type owl:Restriction ;
+                  owl:onProperty gufo:inheresIn ;
+                  owl:someValuesFrom kcro:Container
+                ] ;
+                         dcterms:source kcro:Aliforenko2025 ,
+                                        kcro:Rahman2024 ;
+                         rdfs:comment "Disinhibits container isolation; grounds a host-takeover capacity inhering in the Container."@en ;
+                         rdfs:label "Privileged Container"@en ;
+                         kcro:corpusCount 466 ;
+                         kcro:datasetKey "container.securityContext.privileged=true" ;
+                         kcro:groundingNote "Explicit in Rahman 2024 (category 'Privileged securityContext') and Aliforenko 2025 (sec. 5.4)." .
+
+
+###  https://w3id.org/kcro#ReplicaSet
+kcro:ReplicaSet rdf:type owl:Class ;
+                rdfs:subClassOf kcro:WorkloadResource .
+
+
+###  https://w3id.org/kcro#Risk
+kcro:Risk rdf:type owl:Class ;
+          rdfs:subClassOf gufo:Relator .
+
+
+###  https://w3id.org/kcro#Role
+kcro:Role rdf:type owl:Class ;
+          rdfs:subClassOf kcro:PermissionResource .
+
+
+###  https://w3id.org/kcro#RoleBinding
+kcro:RoleBinding rdf:type owl:Class ;
+                 rdfs:subClassOf kcro:KubernetesRelation .
+
+
+###  https://w3id.org/kcro#RunAsNonRootDisabled
+kcro:RunAsNonRootDisabled rdf:type owl:Class ;
+                          rdfs:subClassOf kcro:VulnerabilityByCommission ,
+                [ rdf:type owl:Restriction ;
+                  owl:onProperty gufo:inheresIn ;
+                  owl:someValuesFrom kcro:Pod
+                ] ;
+                          dcterms:source kcro:Rahman2024 ;
+                          rdfs:label "runAsNonRoot Explicitly False"@en ;
+                          kcro:corpusCount 18 ;
+                          kcro:datasetKey "pod.securityContext.runAsNonRoot=false" ;
+                          kcro:groundingNote "Explicit disabling of a protective setting; securityContext family." .
+
+
+###  https://w3id.org/kcro#Secret
+kcro:Secret rdf:type owl:Class ;
+            rdfs:subClassOf kcro:DataResource .
+
+
+###  https://w3id.org/kcro#SecurityDisposition
+kcro:SecurityDisposition rdf:type owl:Class ;
+                         rdfs:subClassOf gufo:IntrinsicMode ;
+                         owl:disjointWith kcro:SecurityQuality .
+
+
+###  https://w3id.org/kcro#SecurityQuality
+kcro:SecurityQuality rdf:type owl:Class ;
+                     rdfs:subClassOf gufo:Quality .
+
+
+###  https://w3id.org/kcro#Service
+kcro:Service rdf:type owl:Class ;
+             rdfs:subClassOf kcro:NetworkResource .
+
+
+###  https://w3id.org/kcro#ServiceAccount
+kcro:ServiceAccount rdf:type owl:Class ;
+                    rdfs:subClassOf kcro:IdentityResource .
+
+
+###  https://w3id.org/kcro#ServiceExposureLevel
+kcro:ServiceExposureLevel rdf:type owl:Class ;
+                          rdfs:subClassOf kcro:SecurityQuality ,
+                                          [ rdf:type owl:Restriction ;
+                                            owl:onProperty gufo:inheresIn ;
+                                            owl:someValuesFrom kcro:Service
+                                          ] .
+
+
+###  https://w3id.org/kcro#ServiceRouting
+kcro:ServiceRouting rdf:type owl:Class ;
+                    rdfs:subClassOf kcro:KubernetesRelation .
+
+
+###  https://w3id.org/kcro#StatefulSet
+kcro:StatefulSet rdf:type owl:Class ;
+                 rdfs:subClassOf kcro:WorkloadResource .
+
+
+###  https://w3id.org/kcro#ThreatAgent
+kcro:ThreatAgent rdf:type owl:Class ;
+                 rdfs:subClassOf gufo:Object .
+
+
+###  https://w3id.org/kcro#ThreatCapability
+kcro:ThreatCapability rdf:type owl:Class ;
+                      rdfs:subClassOf kcro:SecurityDisposition .
+
+
+###  https://w3id.org/kcro#ThreatEvent
+kcro:ThreatEvent rdf:type owl:Class ;
+                 rdfs:subClassOf gufo:Event .
+
+
+###  https://w3id.org/kcro#ThreatIntelDescriptor
+kcro:ThreatIntelDescriptor rdf:type owl:Class ;
+                           rdfs:subClassOf kcro:InformationObject .
+
+
+###  https://w3id.org/kcro#VolumeMount
+kcro:VolumeMount rdf:type owl:Class ;
+                 rdfs:subClassOf kcro:KubernetesRelation .
+
+
+###  https://w3id.org/kcro#Vulnerability
+kcro:Vulnerability rdf:type owl:Class ;
+                   rdfs:subClassOf kcro:SecurityDisposition .
+
+
+###  https://w3id.org/kcro#VulnerabilityByCommission
+kcro:VulnerabilityByCommission rdf:type owl:Class ;
+                               rdfs:subClassOf kcro:Vulnerability ;
+                               owl:disjointWith kcro:VulnerabilityByOmission ;
+                               rdfs:comment "Grounded by an explicitly-set dangerous value (e.g. privileged: true). Decidable from the manifest alone; a confirmed, deliberate risk."@en ;
+                               rdfs:label "Vulnerability by Commission"@en .
+
+
+###  https://w3id.org/kcro#VulnerabilityByOmission
+kcro:VulnerabilityByOmission rdf:type owl:Class ;
+                             rdfs:subClassOf kcro:Vulnerability ;
+                             rdfs:comment "Grounded by the ABSENCE of a protective setting, leaving the insecure-by-default state in place (e.g. resources.limits missing). An upper bound on potential exposure rather than a confirmed exploit."@en ;
+                             rdfs:label "Vulnerability by Omission"@en .
+
+
+###  https://w3id.org/kcro#WildcardAPIGroups
+kcro:WildcardAPIGroups rdf:type owl:Class ;
+                       rdfs:subClassOf kcro:VulnerabilityByCommission ,
+                [ rdf:type owl:Restriction ;
+                  owl:onProperty gufo:inheresIn ;
+                  owl:someValuesFrom kcro:PermissionResource
+                ] ;
+                       dcterms:source kcro:CISBenchmark ;
+                       rdfs:label "Wildcard RBAC API Groups"@en ;
+                       kcro:corpusCount 290 ;
+                       kcro:datasetKey "rbac.rule.apiGroups=wildcard" ;
+                       kcro:groundingNote "As above (RBAC); grounded in CIS Kubernetes Benchmark v1.5.1 control 5.1.3 (minimize wildcard use in Roles and ClusterRoles)." .
+
+
+###  https://w3id.org/kcro#WildcardResources
+kcro:WildcardResources rdf:type owl:Class ;
+                       rdfs:subClassOf kcro:VulnerabilityByCommission ,
+                [ rdf:type owl:Restriction ;
+                  owl:onProperty gufo:inheresIn ;
+                  owl:someValuesFrom kcro:PermissionResource
+                ] ;
+                       dcterms:source kcro:CISBenchmark ;
+                       rdfs:label "Wildcard RBAC Resources"@en ;
+                       kcro:corpusCount 566 ;
+                       kcro:datasetKey "rbac.rule.resources=wildcard" ;
+                       kcro:groundingNote "As above (RBAC); grounded in CIS Kubernetes Benchmark v1.5.1 control 5.1.3 (minimize wildcard use in Roles and ClusterRoles)." .
+
+
+###  https://w3id.org/kcro#WildcardVerbs
+kcro:WildcardVerbs rdf:type owl:Class ;
+                   rdfs:subClassOf kcro:VulnerabilityByCommission ,
+                [ rdf:type owl:Restriction ;
+                  owl:onProperty gufo:inheresIn ;
+                  owl:someValuesFrom kcro:PermissionResource
+                ] ;
+                   dcterms:source kcro:CISBenchmark ;
+                   rdfs:label "Wildcard RBAC Verbs"@en ;
+                   kcro:corpusCount 1684 ;
+                   kcro:datasetKey "rbac.rule.verbs=wildcard" ;
+                   kcro:groundingNote "RBAC over-permission. NOT in Rahman 2024 (which omits RBAC). Grounded in CIS Kubernetes Benchmark v1.5.1 control 5.1.3 (minimize wildcard use in Roles and ClusterRoles) — a least-privilege violation. Verified 2026-06-10 against KGSecConfig (Haque 2022): the paper mines component-level secured-configuration knowledge from official documentation and does not enumerate this manifest-level pattern, so it is not cited." .
+
+
+###  https://w3id.org/kcro#WorkloadManagement
+kcro:WorkloadManagement rdf:type owl:Class ;
+                        rdfs:subClassOf kcro:KubernetesRelation .
+
+
+###  https://w3id.org/kcro#WorkloadResource
+kcro:WorkloadResource rdf:type owl:Class ;
+                      rdfs:subClassOf kcro:KubernetesObject .
+
+
+#################################################################
+#    Individuals
+#################################################################
+
+###  https://w3id.org/kcro#Aliforenko2025
+kcro:Aliforenko2025 rdf:type owl:NamedIndividual ;
+                    dcterms:bibliographicCitation "Aliforenko (2025). Extracting Knowledge from Kubernetes Configuration Graphs. TScIT 43, University of Twente. Graph-based analysis; security section covers privileged containers, NetworkPolicy absence, and external exposure (LoadBalancer/NodePort/Ingress)."@en ;
+                    rdfs:label "Aliforenko 2025"@en .
+
+
+###  https://w3id.org/kcro#CISBenchmark
+kcro:CISBenchmark rdf:type owl:NamedIndividual ;
+                  dcterms:bibliographicCitation "Center for Internet Security (2020). CIS Kubernetes Benchmark v1.5.1. Section 5.1 (RBAC and Service Accounts) and Section 5.2 (Pod Security Policies)."@en ;
+                  rdfs:label "CIS Kubernetes Benchmark v1.5.1"@en .
+
+
+###  https://w3id.org/kcro#ClusterRole
+kcro:ClusterRole rdf:type owl:NamedIndividual ,
+                          gufo:Kind .
+
+
+###  https://w3id.org/kcro#ClusterRoleBinding
+kcro:ClusterRoleBinding rdf:type owl:NamedIndividual ,
+                                 gufo:Kind .
+
+
+###  https://w3id.org/kcro#ConfigMap
+kcro:ConfigMap rdf:type owl:NamedIndividual ,
+                        gufo:Kind .
+
+
+###  https://w3id.org/kcro#Container
+kcro:Container rdf:type owl:NamedIndividual ,
+                        gufo:Kind .
+
+
+###  https://w3id.org/kcro#ContainerImage
+kcro:ContainerImage rdf:type owl:NamedIndividual ,
+                             gufo:Kind .
+
+
+###  https://w3id.org/kcro#CronJob
+kcro:CronJob rdf:type owl:NamedIndividual ,
+                      gufo:Kind .
+
+
+###  https://w3id.org/kcro#DaemonSet
+kcro:DaemonSet rdf:type owl:NamedIndividual ,
+                        gufo:Kind .
+
+
+###  https://w3id.org/kcro#DataResource
+kcro:DataResource rdf:type owl:NamedIndividual ,
+                           gufo:Category .
+
+
+###  https://w3id.org/kcro#Deployment
+kcro:Deployment rdf:type owl:NamedIndividual ,
+                         gufo:Kind .
+
+
+###  https://w3id.org/kcro#EnvReference
+kcro:EnvReference rdf:type owl:NamedIndividual ,
+                           gufo:Kind .
+
+
+###  https://w3id.org/kcro#Haque2022
+kcro:Haque2022 rdf:type owl:NamedIndividual ;
+               dcterms:bibliographicCitation "Ul Haque, Kholoosi, Babar (2022). KGSecConfig: A Knowledge Graph Based Approach for Secured Container Orchestrator Configuration. IEEE. Broad secured-configuration knowledge graph over Kubernetes/Docker/Azure/VMware."@en ;
+               rdfs:label "Haque et al. 2022 (KGSecConfig)"@en .
+
+
+###  https://w3id.org/kcro#IdentityAssignment
+kcro:IdentityAssignment rdf:type owl:NamedIndividual ,
+                                 gufo:Kind .
+
+
+###  https://w3id.org/kcro#IdentityResource
+kcro:IdentityResource rdf:type owl:NamedIndividual ,
+                               gufo:Category .
+
+
+###  https://w3id.org/kcro#ImageReference
+kcro:ImageReference rdf:type owl:NamedIndividual ,
+                             gufo:Kind .
+
+
+###  https://w3id.org/kcro#ImageTagPolicy
+kcro:ImageTagPolicy rdf:type owl:NamedIndividual ,
+                             gufo:Kind .
+
+
+###  https://w3id.org/kcro#InformationObject
+kcro:InformationObject rdf:type owl:NamedIndividual ,
+                                gufo:Kind .
+
+
+###  https://w3id.org/kcro#Ingress
+kcro:Ingress rdf:type owl:NamedIndividual ,
+                      gufo:Kind .
+
+
+###  https://w3id.org/kcro#IngressBackend
+kcro:IngressBackend rdf:type owl:NamedIndividual ,
+                             gufo:Kind .
+
+
+###  https://w3id.org/kcro#Job
+kcro:Job rdf:type owl:NamedIndividual ,
+                  gufo:Kind .
+
+
+###  https://w3id.org/kcro#KubernetesObject
+kcro:KubernetesObject rdf:type owl:NamedIndividual ,
+                               gufo:Category .
+
+
+###  https://w3id.org/kcro#KubernetesRelation
+kcro:KubernetesRelation rdf:type owl:NamedIndividual ,
+                                 gufo:Category .
+
+
+###  https://w3id.org/kcro#LossEvent
+kcro:LossEvent rdf:type owl:NamedIndividual ,
+                        gufo:EventType .
+
+
+###  https://w3id.org/kcro#NetworkPolicy
+kcro:NetworkPolicy rdf:type owl:NamedIndividual ,
+                            gufo:Kind .
+
+
+###  https://w3id.org/kcro#NetworkPolicyScope
+kcro:NetworkPolicyScope rdf:type owl:NamedIndividual ,
+                                 gufo:Kind .
+
+
+###  https://w3id.org/kcro#NetworkResource
+kcro:NetworkResource rdf:type owl:NamedIndividual ,
+                              gufo:Category .
+
+
+###  https://w3id.org/kcro#PermissionResource
+kcro:PermissionResource rdf:type owl:NamedIndividual ,
+                                 gufo:Category .
+
+
+###  https://w3id.org/kcro#Pod
+kcro:Pod rdf:type owl:NamedIndividual ,
+                  gufo:Kind .
+
+
+###  https://w3id.org/kcro#Rahman2024
+kcro:Rahman2024 rdf:type owl:NamedIndividual ;
+                dcterms:bibliographicCitation "Rahman, Shamim, Bose, Pandita (2024). Security Misconfigurations in Open Source Kubernetes Manifests: An Empirical Study. ACM TOSEM (pre-print). Defines 11 misconfiguration categories detected by SLI-KUBE."@en ;
+                rdfs:label "Rahman et al. 2024"@en .
+
+
+###  https://w3id.org/kcro#ReplicaSet
+kcro:ReplicaSet rdf:type owl:NamedIndividual ,
+                         gufo:Kind .
+
+
+###  https://w3id.org/kcro#Risk
+kcro:Risk rdf:type owl:NamedIndividual ,
+                   gufo:Kind .
+
+
+###  https://w3id.org/kcro#Role
+kcro:Role rdf:type owl:NamedIndividual ,
+                   gufo:Kind .
+
+
+###  https://w3id.org/kcro#RoleBinding
+kcro:RoleBinding rdf:type owl:NamedIndividual ,
+                          gufo:Kind .
+
+
+###  https://w3id.org/kcro#Secret
+kcro:Secret rdf:type owl:NamedIndividual ,
+                     gufo:Kind .
+
+
+###  https://w3id.org/kcro#SecurityDisposition
+kcro:SecurityDisposition rdf:type owl:NamedIndividual ,
+                                  gufo:Category .
+
+
+###  https://w3id.org/kcro#SecurityQuality
+kcro:SecurityQuality rdf:type owl:NamedIndividual ,
+                              gufo:Category .
+
+
+###  https://w3id.org/kcro#Service
+kcro:Service rdf:type owl:NamedIndividual ,
+                      gufo:Kind .
+
+
+###  https://w3id.org/kcro#ServiceAccount
+kcro:ServiceAccount rdf:type owl:NamedIndividual ,
+                             gufo:Kind .
+
+
+###  https://w3id.org/kcro#ServiceExposureLevel
+kcro:ServiceExposureLevel rdf:type owl:NamedIndividual ,
+                                   gufo:Kind .
+
+
+###  https://w3id.org/kcro#ServiceRouting
+kcro:ServiceRouting rdf:type owl:NamedIndividual ,
+                             gufo:Kind .
+
+
+###  https://w3id.org/kcro#StatefulSet
+kcro:StatefulSet rdf:type owl:NamedIndividual ,
+                          gufo:Kind .
+
+
+###  https://w3id.org/kcro#ThreatAgent
+kcro:ThreatAgent rdf:type owl:NamedIndividual ,
+                          gufo:RoleMixin .
+
+
+###  https://w3id.org/kcro#ThreatCapability
+kcro:ThreatCapability rdf:type owl:NamedIndividual ,
+                               gufo:Kind .
+
+
+###  https://w3id.org/kcro#ThreatEvent
+kcro:ThreatEvent rdf:type owl:NamedIndividual ,
+                          gufo:EventType .
+
+
+###  https://w3id.org/kcro#ThreatIntelDescriptor
+kcro:ThreatIntelDescriptor rdf:type owl:NamedIndividual ,
+                                    gufo:SubKind .
+
+
+###  https://w3id.org/kcro#VolumeMount
+kcro:VolumeMount rdf:type owl:NamedIndividual ,
+                          gufo:Kind .
+
+
+###  https://w3id.org/kcro#Vulnerability
+kcro:Vulnerability rdf:type owl:NamedIndividual ,
+                            gufo:Category .
+
+
+###  https://w3id.org/kcro#WorkloadManagement
+kcro:WorkloadManagement rdf:type owl:NamedIndividual ,
+                                 gufo:Kind .
+
+
+###  https://w3id.org/kcro#WorkloadResource
+kcro:WorkloadResource rdf:type owl:NamedIndividual ,
+                               gufo:Category .
+
+
+###  gUFO meta-typing for the misconfiguration taxonomy (added in 0.3.0).
+###  Leaf vulnerability classes are gufo:Kind: rigid, intrinsically grounded,
+###  and supplying the identity principle gUFO requires every endurant to have.
+###  Value-based subclasses of the two quality kinds are gufo:Phase: the same
+###  quality individual can move between values when the manifest changes.
+
+kcro:VulnerabilityByCommission rdf:type owl:NamedIndividual ,
+                                        gufo:Category .
+
+
+kcro:VulnerabilityByOmission rdf:type owl:NamedIndividual ,
+                                      gufo:Category .
+
+
+kcro:AbsentIngressTLS rdf:type owl:NamedIndividual ,
+                               gufo:Kind .
+
+
+kcro:AbsentResourceLimit rdf:type owl:NamedIndividual ,
+                                  gufo:Kind .
+
+
+kcro:AbsentRunAsNonRoot rdf:type owl:NamedIndividual ,
+                                 gufo:Kind .
+
+
+kcro:AddedLinuxCapabilities rdf:type owl:NamedIndividual ,
+                                     gufo:Kind .
+
+
+kcro:AutomountTokenEnabled rdf:type owl:NamedIndividual ,
+                                    gufo:Kind .
+
+
+kcro:ClusterAdminBinding rdf:type owl:NamedIndividual ,
+                                  gufo:Kind .
+
+
+kcro:ContainerRunAsRoot rdf:type owl:NamedIndividual ,
+                                 gufo:Kind .
+
+
+kcro:DefaultServiceAccount rdf:type owl:NamedIndividual ,
+                                    gufo:Kind .
+
+
+kcro:HostIPCPod rdf:type owl:NamedIndividual ,
+                         gufo:Kind .
+
+
+kcro:HostNetworkPod rdf:type owl:NamedIndividual ,
+                             gufo:Kind .
+
+
+kcro:HostPIDPod rdf:type owl:NamedIndividual ,
+                         gufo:Kind .
+
+
+kcro:PodRunAsRoot rdf:type owl:NamedIndividual ,
+                           gufo:Kind .
+
+
+kcro:PrivilegeEscalationAllowed rdf:type owl:NamedIndividual ,
+                                         gufo:Kind .
+
+
+kcro:PrivilegedContainer rdf:type owl:NamedIndividual ,
+                                  gufo:Kind .
+
+
+kcro:RunAsNonRootDisabled rdf:type owl:NamedIndividual ,
+                                   gufo:Kind .
+
+
+kcro:WildcardAPIGroups rdf:type owl:NamedIndividual ,
+                                gufo:Kind .
+
+
+kcro:WildcardResources rdf:type owl:NamedIndividual ,
+                                gufo:Kind .
+
+
+kcro:WildcardVerbs rdf:type owl:NamedIndividual ,
+                            gufo:Kind .
+
+
+kcro:ClusterIPExposure rdf:type owl:NamedIndividual ,
+                                gufo:Phase .
+
+
+kcro:ExternalNameExposure rdf:type owl:NamedIndividual ,
+                                   gufo:Phase .
+
+
+kcro:ImageTagLatest rdf:type owl:NamedIndividual ,
+                             gufo:Phase .
+
+
+kcro:ImageTagMissing rdf:type owl:NamedIndividual ,
+                              gufo:Phase .
+
+
+kcro:LoadBalancerExposure rdf:type owl:NamedIndividual ,
+                                   gufo:Phase .
+
+
+kcro:NodePortExposure rdf:type owl:NamedIndividual ,
+                               gufo:Phase .
+
+
+###  https://w3id.org/kcro#exampleAdminVuln
+kcro:exampleAdminVuln rdf:type owl:NamedIndividual ,
+                               kcro:ClusterAdminBinding ;
+                      gufo:inheresIn kcro:exampleBinding ;
+                      rdfs:label "cluster-admin grant vulnerability on the binding"@en .
+
+
+###  https://w3id.org/kcro#exampleAttacker
+kcro:exampleAttacker rdf:type owl:NamedIndividual ,
+                              kcro:Pod ,
+                              kcro:ThreatAgent ;
+                     rdfs:label "compromised workload"@en .
+
+
+###  https://w3id.org/kcro#exampleBinding
+kcro:exampleBinding rdf:type owl:NamedIndividual ,
+                             kcro:ClusterRoleBinding ;
+                    gufo:mediates kcro:exampleClusterAdminRole ,
+                                  kcro:exampleSA ;
+                    rdfs:label "binds default SA to cluster-admin"@en .
+
+
+###  https://w3id.org/kcro#exampleCapability
+kcro:exampleCapability rdf:type owl:NamedIndividual ,
+                                kcro:ThreatCapability ;
+                       gufo:inheresIn kcro:exampleAttacker ;
+                       kcro:exploits kcro:exampleAdminVuln ,
+                                     kcro:examplePrivileged ;
+                       rdfs:label "container-breakout + privilege-escalation capability"@en .
+
+
+###  https://w3id.org/kcro#exampleClusterAdminRole
+kcro:exampleClusterAdminRole rdf:type owl:NamedIndividual ,
+                                      kcro:ClusterRole ;
+                             rdfs:label "cluster-admin ClusterRole"@en .
+
+
+###  https://w3id.org/kcro#exampleContainer
+kcro:exampleContainer rdf:type owl:NamedIndividual ,
+                               kcro:Container ;
+                      gufo:isProperPartOf kcro:examplePod ;
+                      rdfs:label "example app container"@en .
+
+
+###  https://w3id.org/kcro#exampleIdentity
+kcro:exampleIdentity rdf:type owl:NamedIndividual ,
+                              kcro:IdentityAssignment ;
+                     gufo:mediates kcro:examplePod ,
+                                   kcro:exampleSA ;
+                     rdfs:label "pod -> serviceAccount assignment"@en .
+
+
+###  https://w3id.org/kcro#examplePod
+kcro:examplePod rdf:type owl:NamedIndividual ,
+                         kcro:Pod ;
+                rdfs:label "example workload pod"@en .
+
+
+###  https://w3id.org/kcro#examplePrivileged
+kcro:examplePrivileged rdf:type owl:NamedIndividual ,
+                                kcro:PrivilegedContainer ;
+                       gufo:inheresIn kcro:exampleContainer ;
+                       rdfs:label "privileged=true on example container"@en .
+
+
+###  https://w3id.org/kcro#exampleRisk
+kcro:exampleRisk rdf:type owl:NamedIndividual ,
+                          kcro:Risk ;
+                 gufo:mediates kcro:exampleAttacker ,
+                               kcro:examplePod ;
+                 rdfs:label "host-takeover risk"@en .
+
+
+###  https://w3id.org/kcro#exampleSA
+kcro:exampleSA rdf:type owl:NamedIndividual ,
+                        kcro:ServiceAccount ;
+               rdfs:label "default ServiceAccount"@en .
+
+
+#################################################################
+#    Annotations
+#################################################################
+
+kcro:ClusterRole rdfs:label "ClusterRole"@en .
+
+
+kcro:ClusterRoleBinding rdfs:comment "Cluster-scoped binding relator mediating subjects and a ClusterRole."@en ;
+                        rdfs:label "ClusterRoleBinding"@en ;
+                        skos:scopeNote "Aggregates ClusterRoleBinding->ClusterRole (roleRef), ClusterRoleBinding->ServiceAccount (subjects)." .
+
+
+kcro:ConfigMap rdfs:label "ConfigMap"@en .
+
+
+kcro:Container rdfs:comment "Bearer of container-level security aspects. Distinct bearer from its Pod: pod-level and container-level settings inhere in different individuals."@en ;
+               rdfs:label "Container"@en .
+
+
+kcro:ContainerImage rdfs:comment "The software artifact a container runs. The bridge to the supply-chain / vulnerability world."@en ;
+                    rdfs:label "Container Image"@en .
+
+
+kcro:CronJob rdfs:label "CronJob"@en .
+
+
+kcro:DaemonSet rdfs:label "DaemonSet"@en .
+
+
+kcro:DataResource rdfs:label "Data Resource"@en .
+
+
+kcro:Deployment rdfs:label "Deployment"@en .
+
+
+kcro:EnvReference rdfs:label "Environment Reference"@en ;
+                  skos:scopeNote "Pod -> ConfigMap/Secret (envFrom)." .
+
+
+kcro:IdentityAssignment rdfs:label "Identity Assignment"@en ;
+                        skos:scopeNote "Pod -> ServiceAccount (serviceAccountName). Security-critical: ties a workload to its cluster identity." .
+
+
+kcro:IdentityResource rdfs:comment "Subjects of access control."@en ;
+                      rdfs:label "Identity Resource"@en .
+
+
+kcro:ImageReference rdfs:label "Image Reference"@en ;
+                    skos:scopeNote "Pod/Container -> ContainerImage (image). Bridge to the supply-chain layer." .
+
+
+kcro:ImageTagPolicy rdfs:comment "Quality of a Container's image reference taking a value in {digest-pinned, explicit-tag, latest, absent}. 'latest' and 'absent' undermine reproducibility and provenance."@en ;
+                    rdfs:label "Image Tag Policy"@en ;
+                    kcro:groundingNote "Image immutability best practice (pin by digest). NOT enumerated in Rahman 2024's 11 categories; grounded in the Kubernetes Configuration Best Practices documentation and general CIS guidance. Verified 2026-06-10 against KGSecConfig (Haque 2022): the paper mines component-level secured-configuration knowledge from official documentation and does not enumerate this manifest-level pattern, so it is not cited." .
+
+
+kcro:InformationObject rdfs:comment "A descriptor: a piece of information that represents a world entity (e.g. a STIX Vulnerability SDO, a CVE record, a CWE entry). Distinct from the world entity it describes."@en ;
+                       rdfs:label "Information Object"@en .
+
+
+kcro:Ingress rdfs:label "Ingress"@en .
+
+
+kcro:IngressBackend rdfs:label "Ingress Backend"@en ;
+                    skos:scopeNote "Ingress -> Service (backend)." .
+
+
+kcro:Job rdfs:label "Job"@en .
+
+
+kcro:KubernetesObject rdfs:comment "Top non-sortal category generalising every Kubernetes resource kind catalogued in the corpus (541 distinct kinds). A Category because it is rigid but spans many kinds with different identity principles."@en ;
+                      rdfs:label "Kubernetes Object"@en .
+
+
+kcro:KubernetesRelation rdfs:comment "Top category of relators reifying the 18 inter-resource relationship types catalogued in the corpus."@en ;
+                        rdfs:label "Kubernetes Relation"@en .
+
+
+kcro:LossEvent rdfs:comment "An impact on a security goal (confidentiality/integrity/availability) caused by a threat event."@en ;
+               rdfs:label "Loss Event"@en .
+
+
+kcro:NetworkPolicy rdfs:comment "Its ABSENCE (a flat allow-all network) is the security-relevant condition (Aliforenko 2025)."@en ;
+                   rdfs:label "NetworkPolicy"@en .
+
+
+kcro:NetworkPolicyScope rdfs:label "Network Policy Scope"@en ;
+                        skos:scopeNote "NetworkPolicy -> Pod (podSelector). Its absence leaves an allow-all network (Aliforenko 2025)." .
+
+
+kcro:NetworkResource rdfs:label "Network Resource"@en .
+
+
+kcro:PermissionResource rdfs:comment "RBAC rules and their bindings."@en ;
+                        rdfs:label "Permission Resource"@en .
+
+
+kcro:Pod rdfs:comment "Smallest deployable unit; the principal bearer of pod-level security aspects."@en ;
+         rdfs:label "Pod"@en .
+
+
+kcro:ReplicaSet rdfs:label "ReplicaSet"@en .
+
+
+kcro:Risk rdfs:comment "A relator mediating an asset-at-risk (a Kubernetes object bearing a vulnerability) and a threat agent (bearing a capability that can exploit it)."@en ;
+          rdfs:label "Risk"@en .
+
+
+kcro:Role rdfs:label "Role"@en .
+
+
+kcro:RoleBinding rdfs:comment "A namespaced relator mediating one or more subjects (e.g. ServiceAccount) and a Role/ClusterRole. Instances bear their own properties (roleRef, subjects) and can themselves be the bearer of a ClusterAdminBinding vulnerability."@en ;
+                 rdfs:label "RoleBinding"@en ;
+                 skos:scopeNote "Aggregates corpus relationships RoleBinding->ServiceAccount (subjects), RoleBinding->Role (roleRef), RoleBinding->ClusterRole (roleRef)." .
+
+
+kcro:Secret rdfs:label "Secret"@en .
+
+
+kcro:SecurityDisposition rdfs:comment "A dispositional security-relevant aspect: a capacity that may be manifested in a (loss) event. Inheres in exactly one bearer."@en ;
+                         rdfs:label "Security Disposition"@en .
+
+
+kcro:SecurityQuality rdfs:comment "A value-bearing security-relevant aspect (it has a quality value), inhering in a Kubernetes object."@en ;
+                     rdfs:label "Security Quality"@en .
+
+
+kcro:Service rdfs:label "Service"@en .
+
+
+kcro:ServiceAccount rdfs:label "ServiceAccount"@en .
+
+
+kcro:ServiceExposureLevel dcterms:source kcro:Aliforenko2025 ;
+                          rdfs:comment "Quality of a Service taking one value from {ClusterIP, NodePort, LoadBalancer, ExternalName}. ClusterIP is the non-exposed default; the others raise the exposure surface and are risk-contributing rather than vulnerabilities in themselves."@en ;
+                          rdfs:label "Service Exposure Level"@en ;
+                          kcro:groundingNote "External-exposure analysis in Aliforenko 2025 (sec. 5.4): LoadBalancer/NodePort/Ingress flagged as internet-exposed." .
+
+
+kcro:ServiceRouting rdfs:label "Service Routing"@en ;
+                    skos:scopeNote "Service -> Pod (selector)." .
+
+
+kcro:StatefulSet rdfs:label "StatefulSet"@en .
+
+
+kcro:ThreatAgent rdfs:comment "An entity (e.g. a compromised container, an external attacker) bearing a threat capability. RoleMixin: 'threat agent' is a relational role played by objects of various kinds."@en ;
+                 rdfs:label "Threat Agent"@en .
+
+
+kcro:ThreatCapability rdfs:comment "A disposition inhering in a threat agent whose manifestation exploits a vulnerability."@en ;
+                      rdfs:label "Threat Capability"@en .
+
+
+kcro:ThreatEvent rdfs:comment "The manifestation event in which a threat capability acts on a vulnerability."@en ;
+                 rdfs:label "Threat Event"@en .
+
+
+kcro:ThreatIntelDescriptor rdfs:label "Threat-Intelligence Descriptor"@en ;
+                           skos:editorialNote "TODO: align to STIX 2.1 SDOs (Vulnerability, Attack-Pattern, Course-of-Action) and UCO observable objects via owl:equivalentClass once the import strategy is fixed. STIX/UCO are not native OWL, so alignment is by annotation here."@en .
+
+
+kcro:VolumeMount rdfs:label "Volume Mount"@en ;
+                 skos:scopeNote "Pod -> Secret/ConfigMap/PersistentVolumeClaim (volume)." .
+
+
+kcro:Vulnerability rdfs:comment "A rigid category of dispositions whose grounding (a dangerous value or a missing protective setting) makes their bearer exploitable. A gufo:Category because vulnerabilities range over disposition kinds with different bearers (Pod, Container, RBAC binding...). Typed Category rather than RoleMixin since the leaf vulnerability kinds are rigid (decidable from the manifest alone) and a rigid type may not specialize an anti-rigid one; exploitability-in-context is captured by the Risk relator instead. Follows the COVER treatment of vulnerability-as-disposition."@en ;
+                   rdfs:label "Vulnerability"@en .
+
+
+kcro:WorkloadManagement rdfs:label "Workload Management"@en ;
+                        skos:scopeNote "Deployment/StatefulSet/DaemonSet -> Pod (template+selector)." .
+
+
+kcro:WorkloadResource rdfs:comment "Bearers of runtime security configuration."@en ;
+                      rdfs:label "Workload Resource"@en .
+
+
+#################################################################
+#    General axioms
+#################################################################
+
+[ rdf:type owl:AllDisjointClasses ;
+  owl:members ( kcro:DataResource
+                kcro:IdentityResource
+                kcro:NetworkResource
+                kcro:PermissionResource
+                kcro:WorkloadResource
+              )
+] .
+
+
+###  Generated by the OWL API (version 4.5.29.2024-05-13T12:11:03Z) https://github.com/owlcs/owlapi
+
+#################################################################
+#    FAIRification 0.3.1: term definitions (rdfs:comment) for previously label-only terms
+#################################################################
+
+kcro:ClusterRole rdfs:comment "A cluster-scoped RBAC role: a named set of permission rules that applies across all namespaces. Modelled as a permission resource kind."@en .
+kcro:ConfigMap rdfs:comment "A Kubernetes object holding non-confidential configuration data as key-value pairs, consumed by pods as environment variables or mounted files. Modelled as a data resource kind."@en .
+kcro:CronJob rdfs:comment "A workload kind that creates Jobs on a repeating schedule. Modelled as a workload-management resource kind."@en .
+kcro:DaemonSet rdfs:comment "A workload kind that ensures a copy of a pod runs on every (or selected) node. Modelled as a workload-management resource kind."@en .
+kcro:DataResource rdfs:comment "Abstract grouping of Kubernetes kinds whose purpose is to hold data consumed by workloads, such as ConfigMap and Secret."@en .
+kcro:Deployment rdfs:comment "A workload kind that manages a replicated, declaratively updated set of pods via a pod template. Modelled as a workload-management resource kind."@en .
+kcro:Ingress rdfs:comment "A Kubernetes object that manages external HTTP/HTTPS access to Services, including routing rules and optional TLS termination. Modelled as a network resource kind."@en .
+kcro:Job rdfs:comment "A workload kind that runs one or more pods to completion. Modelled as a workload-management resource kind."@en .
+kcro:NetworkResource rdfs:comment "Abstract grouping of Kubernetes kinds that govern network exposure and connectivity, such as Service, Ingress, and NetworkPolicy."@en .
+kcro:ReplicaSet rdfs:comment "A workload kind that maintains a stable set of replica pods. Usually managed by a Deployment. Modelled as a workload-management resource kind."@en .
+kcro:Role rdfs:comment "A namespace-scoped RBAC role: a named set of permission rules applying within a single namespace. Modelled as a permission resource kind."@en .
+kcro:Secret rdfs:comment "A Kubernetes object holding confidential data such as credentials or tokens, consumed by pods as environment variables or mounted files. Modelled as a data resource kind."@en .
+kcro:Service rdfs:comment "A Kubernetes object that exposes a set of pods as a network service via a stable address and a label selector. Modelled as a network resource kind."@en .
+kcro:ServiceAccount rdfs:comment "An identity that pods assume to authenticate to the Kubernetes API. Modelled as a permission resource kind."@en .
+kcro:StatefulSet rdfs:comment "A workload kind that manages stateful pods with stable identities and persistent storage. Modelled as a workload-management resource kind."@en .
+kcro:EnvReference rdfs:comment "A relator reifying a pod's consumption of a ConfigMap or Secret as environment variables; encodes containers[].envFrom[].configMapRef / .secretRef. Mediates the pod and the referenced data resource."@en .
+kcro:IdentityAssignment rdfs:comment "A relator reifying the assignment of a ServiceAccount identity to a pod; encodes spec.serviceAccountName. Mediates the pod and the ServiceAccount."@en .
+kcro:ImageReference rdfs:comment "A relator reifying a container's use of a container image; encodes containers[].image. Mediates the container and the ContainerImage."@en .
+kcro:IngressBackend rdfs:comment "A relator reifying an Ingress rule routing to a backend Service; encodes spec.rules[].http.paths[].backend.service.name. Mediates the Ingress and the Service."@en .
+kcro:NetworkPolicyScope rdfs:comment "A relator reifying the set of pods a NetworkPolicy applies to; encodes spec.podSelector.matchLabels resolved against pod labels. Mediates the NetworkPolicy and each selected pod."@en .
+kcro:ServiceRouting rdfs:comment "A relator reifying a Service's selector-based routing to pods; encodes spec.selector resolved against pod labels (many-to-many, resolved at ingestion). Mediates the Service and each routed pod."@en .
+kcro:VolumeMount rdfs:comment "A relator reifying a pod's mounting of a ConfigMap or Secret as a volume; encodes spec.volumes[].secret/.configMap. Mediates the pod and the referenced data resource."@en .
+kcro:WorkloadManagement rdfs:comment "A relator reifying a controller's management of a pod template; encodes spec.template. Mediates the workload controller and the managed pod."@en .
+kcro:ClusterIPExposure rdfs:comment "The exposure quality of a Service of type ClusterIP, reachable only within the cluster. A value-neutral fact, not a vulnerability."@en .
+kcro:ExternalNameExposure rdfs:comment "The exposure quality of a Service of type ExternalName, which maps to an external DNS name. A value-neutral fact, not a vulnerability."@en .
+kcro:LoadBalancerExposure rdfs:comment "The exposure quality of a Service of type LoadBalancer, provisioned with an external load balancer and reachable from outside the cluster. A value-neutral fact, not a vulnerability."@en .
+kcro:NodePortExposure rdfs:comment "The exposure quality of a Service of type NodePort, reachable on a static port of every node and thus from outside the cluster. A value-neutral fact, not a vulnerability."@en .
+kcro:ImageTagLatest rdfs:comment "The image-tag quality of a container whose image reference uses the mutable 'latest' tag, making the running version non-reproducible. A value-neutral quality with security relevance."@en .
+kcro:ImageTagMissing rdfs:comment "The image-tag quality of a container whose image reference omits a tag (defaulting to 'latest'), making the running version non-reproducible. A value-neutral quality with security relevance."@en .
+kcro:ThreatIntelDescriptor rdfs:comment "An information object that describes a KCRO entity in terms of an external threat-intelligence vocabulary (UCO, STIX, CWE), providing an attachment point for alignment without asserting class equivalence."@en .
+kcro:causesLoss rdfs:comment "Relates a threat event to the loss event it brings about, following the COVER risk pattern."@en .
+kcro:cweId rdfs:comment "Associates a KCRO vulnerability class with the identifier of the corresponding Common Weakness Enumeration (CWE) entry, where one applies."@en .

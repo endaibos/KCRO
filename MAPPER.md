@@ -12,12 +12,8 @@ and audited as a standalone artefact, independent of any one dataset.
 ## 1. What it does
 
 ```
-manifests  ──►  pass 1: objects + aspects  ──►  pass 2: resolve references
-(YAML/Arrow)        (mint individuals)            (relators between objects)
-                                                          │
-                              provenance + GitHub stats ──┤
-                                                          ▼
-                                              kcro-abox.ttl  (Turtle ABox)
+manifests  ──►  pass 1: objects + aspects  ──►  pass 2: resolve references  ──►  kcro-abox.ttl
+(YAML/Arrow)        (mint individuals)            (relators between objects)        (Turtle ABox)
 ```
 
 Each in-scope Kubernetes object becomes an RDF individual. Security findings
@@ -52,8 +48,7 @@ Ontology-agnostic machinery that knows *gUFO patterns*, not Kubernetes:
 | `add_type(indiv, cls)` | `indiv rdf:type kcro:cls` (counted once per identity) |
 | `aspect(bearer, cls, key)` | intrinsic aspect: `a rdf:type cls ; gufo:inheresIn bearer ; kcro:datasetKey key` |
 | `relator(cls, *mediated)` | relator: `r rdf:type cls ; gufo:mediates m₁ … mₙ` |
-| `provenance(indiv, repo, ns)` | `indiv prov:wasDerivedFrom <Repository> ; kcro:namespace ns` |
-| `_h / obj_iri / child_iri / repo_iri` | deterministic SHA1 IRI minting (dedup by identity) |
+| `_h / obj_iri / child_iri` | deterministic SHA1 IRI minting (dedup by identity) |
 
 These would work for **any** UFO-grounded ontology, given different class names.
 
@@ -143,8 +138,8 @@ def load_yaml_dir(path):
                 yield path, doc["kind"], md.get("namespace"), md.get("name", "?"), doc
 ```
 
-> Sources other than Arrow won't have GitHub stats — that's fine: provenance still
-> records the repo/namespace, only `repoStars/Forks/Language` are skipped.
+> The `namespace` field is used to scope reference resolution per `(repo, namespace)`;
+> it is not required to be globally unique.
 
 ---
 
@@ -188,27 +183,7 @@ Then declare the class in the TBox and add it to `ANALYSIS_KEYS` in `srq3.py`.
 
 ---
 
-## 7. Provenance layer (KCRO v0.4.0)
-
-Every object and container links to its source repository and namespace:
-
-```turtle
-:Pod-ab12…  prov:wasDerivedFrom  :Repository-9f… ;
-            kcro:namespace        "kube-system" .
-:Repository-9f…  a kcro:Repository ;
-            rdfs:label "owner/repo" ;
-            kcro:repoStars 128 ; kcro:repoForks 12 ; kcro:repoLanguage "Go" .
-```
-
-Repository individuals are minted once (`repo()`), stats attached afterwards
-(`add_repo_meta()` from `load_repo_meta()`). This enables provenance queries
-(CQ12) and grouping a visualisation by repository / namespace. The required TBox
-terms (`kcro:Repository`, `prov:wasDerivedFrom`, `kcro:namespace`,
-`kcro:repoStars/Forks/Language`) live in the v0.4.0 block of `kcro.ttl`.
-
----
-
-## 8. Outputs & verification
+## 7. Outputs & verification
 
 - **Output:** `kcro-abox.ttl` — Turtle ABox importing the KCRO TBox.
 - **`--verify`:** per-class distinct-individual counts + under-mediated relators.
@@ -219,7 +194,7 @@ terms (`kcro:Repository`, `prov:wasDerivedFrom`, `kcro:namespace`,
 
 ---
 
-## 9. Generalisation roadmap (future work)
+## 8. Generalisation roadmap (future work)
 
 This artefact is documented as-is. To turn it into a reusable **framework**, the
 seam in §2 suggests three moves, in increasing effort:
@@ -242,13 +217,13 @@ not the security semantics.
 
 ---
 
-## 10. AI disclosure
+## 9. AI disclosure
 
 The mapper's scope, the Kubernetes-to-KCRO mapping decisions, and the gUFO
 modelling choices are the author's. Claude (Anthropic) was used as an assistant
 for implementing and refactoring the ABox-construction engine (the gUFO
 aspect/relator emitters, the two-pass reference resolution, deterministic IRI
-minting, and the v0.4.0 provenance extension), for wiring the verification tooling
+minting), for wiring the verification tooling
 (`cq_runner.py`, `srq3.py`), and for writing this documentation. All AI-assisted
 code was reviewed by the author, and the generated ABox was validated against the
 survey counts (`--verify` / `security_analysis.json`) and checked for OWL 2 DL
