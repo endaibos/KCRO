@@ -24,17 +24,17 @@ The script supports three modes, controlled by command-line flags:
 
 Usage::
 
-    python survey.py                       # quick metadata overview
-    python survey.py --security            # YAML-parsing deep dive
-    python survey.py --security --charts   # plus PNG charts
+    python src/survey.py                       # quick metadata overview
+    python src/survey.py --security            # YAML-parsing deep dive
+    python src/survey.py --security --charts   # plus PNG charts
 
 Outputs
 =======
 
 * stdout --- human-readable tables and summaries.
-* ``security_analysis.json`` --- machine-readable counters (when ``--security``).
-* ``figures/*.png`` --- bar charts (when ``--charts``).
-* ``parse_failures.log`` --- first 5 YAML parse errors (when ``--security``).
+* ``results/security_analysis.json`` --- machine-readable counters (when ``--security``).
+* ``results/figures/*.png`` --- bar charts (when ``--charts``).
+* ``results/parse_failures.log`` --- first 5 YAML parse errors (when ``--security``).
 
 Field grounding
 ===============

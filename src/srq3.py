@@ -9,14 +9,13 @@ Produces exactly the numbers the thesis needs:
   * (--cqs) execution of the 12 competency questions with timings
 Writes a markdown report you can paste from.
 
-Usage (pick one input; use the venv's python so deps resolve):
-  .venv/bin/python srq3.py --arrow k8s_dataset --analysis security_analysis.json --cqs --tbox kcro-abox.ttl
-  .venv/bin/python srq3.py --jsonl corpus.jsonl --analysis security_analysis.json
-  .venv/bin/python srq3.py                       # bare: defaults to --arrow k8s_dataset
+Usage (run from the repo root; use the venv's python so deps resolve):
+  .venv/bin/python src/srq3.py --cqs        # all paths default to data/, ontology/, results/
+  .venv/bin/python src/srq3.py --jsonl corpus.jsonl
+  .venv/bin/python src/srq3.py              # build + count-diff only (no CQ pass)
 
-Expects instantiate_kcro.py (v0.3.0 script) in the same directory. --cqs parses a
-TBox (--tbox, default kcro.ttl); if you have no TBox, pass --tbox kcro-abox.ttl
-(the CQs match explicit rdf:type triples, so no OWL reasoning is needed).
+Imports instantiate_kcro / cq_runner from src/. Defaults: --arrow data/k8s_dataset,
+--tbox ontology/kcro.ttl, --out ontology/kcro-abox.ttl, --report results/srq3_report.md.
 NOTE: the full corpus takes RAM and time (rdflib, in-memory). Expect on the
 order of 10-30 minutes and a few GB; the CQ pass (esp. CQ9-CQ11) adds more.
 """

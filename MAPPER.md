@@ -25,7 +25,8 @@ be reasoned over (HermiT) and queried with SPARQL.
 **Run it:**
 
 ```bash
-.venv/bin/python instantiate_kcro.py --arrow k8s_dataset --out kcro-abox.ttl --verify
+# run from the repo root; --out defaults to ontology/kcro-abox.ttl
+.venv/bin/python src/instantiate_kcro.py --arrow data/k8s_dataset --verify
 # or:  --jsonl corpus.jsonl
 ```
 
@@ -188,7 +189,7 @@ Then declare the class in the TBox and add it to `ANALYSIS_KEYS` in `srq3.py`.
 - **Output:** `kcro-abox.ttl` — Turtle ABox importing the KCRO TBox.
 - **`--verify`:** per-class distinct-individual counts + under-mediated relators.
 - **`cq_runner.py`:** runs the 12 competency questions as indexed in-memory joins
-  (seconds, no SPARQL blow-up) — `python cq_runner.py --abox kcro-abox.ttl --cqs`.
+  (seconds, no SPARQL blow-up) — `python src/cq_runner.py --cqs`.
 - **`srq3.py`:** full-corpus build + coverage %, triple count, per-class diff vs
   `security_analysis.json`, and the CQ pass in one report.
 

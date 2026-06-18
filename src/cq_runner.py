@@ -9,11 +9,11 @@ count mismatch. Two modes:
   --cqs       : runs the CQs as guarded, indexed Python joins instead of one
                 giant SPARQL query. CQ9/10/11 finish in seconds, not hours.
 
-Usage:
-  python3 cq_runner.py --abox kcro-abox.ttl --cqs
-  python3 cq_runner.py --abox kcro-abox.ttl --counts
+Usage (run from the repo root; --abox defaults to ontology/kcro-abox.ttl):
+  python src/cq_runner.py --cqs
+  python src/cq_runner.py --counts
 
-Needs only the ABox (kcro-abox.ttl); the TBox is not required for counting.
+Needs only the ABox; the TBox is not required for counting.
 """
 import argparse, time
 from pathlib import Path
