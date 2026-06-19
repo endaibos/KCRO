@@ -13,3 +13,8 @@ requests==2.32.5
 tqdm==4.67.1
 typing_extensions==4.15.0
 urllib3==2.5.0
+
+# --- KCRO semantic layer (ontology build + queries + figures) ---
+rdflib==7.6.0        # build/query the knowledge graph
+datasets==4.8.5      # load the KubeObjects Arrow corpus
+graphviz==0.21       # render figures (needs the system 'dot' binary: brew install graphviz)

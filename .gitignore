@@ -1,3 +1,6 @@
 __pycache__/
 *.pyc
 .DS_Store
+
+# ephemeral v0.3.0 explorer (figures/serve_kg_v030.sh)
+.kg_explorer_v030/

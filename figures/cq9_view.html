@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>KCRO — CQ9 result paths (v0.3.0)</title>
+  <script src="https://unpkg.com/three-spritetext"></script>
+  <script src="https://unpkg.com/3d-force-graph"></script>
+  <style>
+    body { margin:0; background:#ffffff; overflow:hidden; font-family:monospace; color:#1a2230; }
+    #graph-container { width:100vw; height:100vh; }
+    .panel { position:absolute; z-index:10; background:rgba(255,255,255,0.92);
+             border:1px solid #cbd5e0; border-radius:6px; padding:12px 14px; }
+    #info { top:16px; left:16px; max-width:420px; }
+    #legend { bottom:16px; left:16px; }
+    h1 { margin:0 0 4px; font-size:1.05rem; color:#2b6cb0; }
+    .sub { margin:0; font-size:0.8rem; color:#566069; }
+    .row { font-size:0.8rem; margin:3px 0; }
+    .dot { display:inline-block; width:11px; height:11px; border-radius:50%; margin-right:7px; vertical-align:middle; }
+  </style>
+</head>
+<body>
+  <div id="info" class="panel">
+    <h1>CQ9 — externally exposed → privileged container</h1>
+    <p class="sub">Every CQ9 result path over the frozen <b>v0.3.0</b> ABox
+       (537,947 triples). Hover a node for its IRI; drag to rotate, scroll to zoom.</p>
+  </div>
+  <div id="legend" class="panel">
+    <div class="row"><span class="dot" style="background:#2c7a7b"></span>Exposure (NodePort/LoadBalancer)</div>
+    <div class="row"><span class="dot" style="background:#2b6cb0"></span>Object (Service / Pod / Container)</div>
+    <div class="row"><span class="dot" style="background:#6b46c1"></span>Relator (ServiceRouting)</div>
+    <div class="row"><span class="dot" style="background:#c53030"></span>Vulnerability (PrivilegedContainer)</div>
+  </div>
+  <div id="graph-container"></div>
+  <script>
+    const graphData = {
+  "nodes": [
+    {
+      "id": "https://w3id.org/kcro/data#LoadBalancerExposure-f527ab0d95e7",
+      "group": "Exposure",
+      "label": "LoadBalancerExposure"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#Service-819860d3317e",
+      "group": "Object",
+      "label": "Service: ${PROJECT_ID}-xwiki-svc-${REGION}"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#ServiceRouting-d1f4eb7b5b3c",
+      "group": "Relator",
+      "label": "ServiceRouting"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#Pod-c8df3ce0c1ec",
+      "group": "Object",
+      "label": "Pod"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#Container-b4c38a665f27",
+      "group": "Object",
+      "label": "Container"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#PrivilegedContainer-6497a79abdb2",
+      "group": "Vulnerability",
+      "label": "PrivilegedContainer"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#LoadBalancerExposure-b591a5f31ad9",
+      "group": "Exposure",
+      "label": "LoadBalancerExposure"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#Service-fb0c1ba3cb7f",
+      "group": "Object",
+      "label": "Service: release-name-demo-flask"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#ServiceRouting-710ca5288f8e",
+      "group": "Relator",
+      "label": "ServiceRouting"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#Pod-073d0558c73d",
+      "group": "Object",
+      "label": "Pod"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#Container-154f44e7b223",
+      "group": "Object",
+      "label": "Container"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#PrivilegedContainer-c80be42465e8",
+      "group": "Vulnerability",
+      "label": "PrivilegedContainer"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#LoadBalancerExposure-a3211844317d",
+      "group": "Exposure",
+      "label": "LoadBalancerExposure"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#Service-cd1739f0c815",
+      "group": "Object",
+      "label": "Service: cloudcore"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#ServiceRouting-5f36b7d13f16",
+      "group": "Relator",
+      "label": "ServiceRouting"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#Pod-06eb65e2097f",
+      "group": "Object",
+      "label": "Pod"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#Container-791f7007b017",
+      "group": "Object",
+      "label": "Container"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#PrivilegedContainer-6d80223f62ce",
+      "group": "Vulnerability",
+      "label": "PrivilegedContainer"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#LoadBalancerExposure-b9d8ff46493e",
+      "group": "Exposure",
+      "label": "LoadBalancerExposure"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#Service-740dcd98071d",
+      "group": "Object",
+      "label": "Service: nginx"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#ServiceRouting-afb9a2e94d72",
+      "group": "Relator",
+      "label": "ServiceRouting"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#Pod-903835d19e59",
+      "group": "Object",
+      "label": "Pod"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#Container-9a20a849673b",
+      "group": "Object",
+      "label": "Container"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#PrivilegedContainer-57a6d177f158",
+      "group": "Vulnerability",
+      "label": "PrivilegedContainer"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#NodePortExposure-3a408c8e2fd9",
+      "group": "Exposure",
+      "label": "NodePortExposure"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#Service-b48f67c8c74a",
+      "group": "Object",
+      "label": "Service: release-name-wg-easy-wg"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#ServiceRouting-35c3e1aad343",
+      "group": "Relator",
+      "label": "ServiceRouting"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#Pod-53765566ce51",
+      "group": "Object",
+      "label": "Pod"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#Container-c4ba69f74a17",
+      "group": "Object",
+      "label": "Container"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#PrivilegedContainer-9920e6bccc0e",
+      "group": "Vulnerability",
+      "label": "PrivilegedContainer"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#NodePortExposure-076456ff7d3f",
+      "group": "Exposure",
+      "label": "NodePortExposure"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#Service-89209d73f341",
+      "group": "Object",
+      "label": "Service: pcm"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#ServiceRouting-8f4b0e53c11e",
+      "group": "Relator",
+      "label": "ServiceRouting"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#Pod-08bd14d3bdac",
+      "group": "Object",
+      "label": "Pod"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#Container-070d9423b7eb",
+      "group": "Object",
+      "label": "Container"
+    },
+    {
+      "id": "https://w3id.org/kcro/data#PrivilegedContainer-a7499545e8ba",
+      "group": "Vulnerability",
+      "label": "PrivilegedContainer"
+    }
+  ],
+  "links": [
+    {
+      "source": "https://w3id.org/kcro/data#LoadBalancerExposure-f527ab0d95e7",
+      "target": "https://w3id.org/kcro/data#Service-819860d3317e",
+      "label": "inheresIn"
+    },
+    {
+      "source": "https://w3id.org/kcro/data#ServiceRouting-d1f4eb7b5b3c",
+      "target": "https://w3id.org/kcro/data#Service-819860d3317e",
+      "label": "mediates"
+    },
+    {
+      "source": "https://w3id.org/kcro/data#ServiceRouting-d1f4eb7b5b3c",
+      "target": "https://w3id.org/kcro/data#Pod-c8df3ce0c1ec",
+      "label": "mediates"
+    },
+    {
+      "source": "https://w3id.org/kcro/data#Container-b4c38a665f27",
+      "target": "https://w3id.org/kcro/data#Pod-c8df3ce0c1ec",
+      "label": "isProperPartOf"
+    },
+    {
+      "source": "https://w3id.org/kcro/data#PrivilegedContainer-6497a79abdb2",
+      "target": "https://w3id.org/kcro/data#Container-b4c38a665f27",
+      "label": "inheresIn"
+    },
+    {
+      "source": "https://w3id.org/kcro/data#LoadBalancerExposure-b591a5f31ad9",
+      "target": "https://w3id.org/kcro/data#Service-fb0c1ba3cb7f",
+      "label": "inheresIn"
+    },
+    {
+      "source": "https://w3id.org/kcro/data#ServiceRouting-710ca5288f8e",
+      "target": "https://w3id.org/kcro/data#Service-fb0c1ba3cb7f",
+      "label": "mediates"
+    },
+    {
+      "source": "https://w3id.org/kcro/data#ServiceRouting-710ca5288f8e",
+      "target": "https://w3id.org/kcro/data#Pod-073d0558c73d",
+      "label": "mediates"
+    },
+    {
+      "source": "https://w3id.org/kcro/data#Container-154f44e7b223",
+      "target": "https://w3id.org/kcro/data#Pod-073d0558c73d",
+      "label": "isProperPartOf"
+    },
+    {
+      "source": "https://w3id.org/kcro/data#PrivilegedContainer-c80be42465e8",
+      "target": "https://w3id.org/kcro/data#Container-154f44e7b223",
+      "label": "inheresIn"
+    },
+    {
+      "source": "https://w3id.org/kcro/data#LoadBalancerExposure-a3211844317d",
+      "target": "https://w3id.org/kcro/data#Service-cd1739f0c815",
+      "label": "inheresIn"
+    },
+    {
+      "source": "https://w3id.org/kcro/data#ServiceRouting-5f36b7d13f16",
+      "target": "https://w3id.org/kcro/data#Service-cd1739f0c815",
+      "label": "mediates"
+    },
+    {
+      "source": "https://w3id.org/kcro/data#ServiceRouting-5f36b7d13f16",
+      "target": "https://w3id.org/kcro/data#Pod-06eb65e2097f",
+      "label": "mediates"
+    },
+    {
+      "source": "https://w3id.org/kcro/data#Container-791f7007b017",
+      "target": "https://w3id.org/kcro/data#Pod-06eb65e2097f",
+      "label": "isProperPartOf"
+    },
+    {
+      "source": "https://w3id.org/kcro/data#PrivilegedContainer-6d80223f62ce",
+      "target": "https://w3id.org/kcro/data#Container-791f7007b017",
+      "label": "inheresIn"
+    },
+    {
+      "source": "https://w3id.org/kcro/data#LoadBalancerExposure-b9d8ff46493e",
+      "target": "https://w3id.org/kcro/data#Service-740dcd98071d",
+      "label": "inheresIn"
+    },
+    {
+      "source": "https://w3id.org/kcro/data#ServiceRouting-afb9a2e94d72",
+      "target": "https://w3id.org/kcro/data#Service-740dcd98071d",
+      "label": "mediates"
+    },
+    {
+      "source": "https://w3id.org/kcro/data#ServiceRouting-afb9a2e94d72",
+      "target": "https://w3id.org/kcro/data#Pod-903835d19e59",
+      "label": "mediates"
+    },
+    {
+      "source": "https://w3id.org/kcro/data#Container-9a20a849673b",
+      "target": "https://w3id.org/kcro/data#Pod-903835d19e59",
+      "label": "isProperPartOf"
+    },
+    {
+      "source": "https://w3id.org/kcro/data#PrivilegedContainer-57a6d177f158",
+      "target": "https://w3id.org/kcro/data#Container-9a20a849673b",
+      "label": "inheresIn"
+    },
+    {
+      "source": "https://w3id.org/kcro/data#NodePortExposure-3a408c8e2fd9",
+      "target": "https://w3id.org/kcro/data#Service-b48f67c8c74a",
+      "label": "inheresIn"
+    },
+    {
+      "source": "https://w3id.org/kcro/data#ServiceRouting-35c3e1aad343",
+      "target": "https://w3id.org/kcro/data#Service-b48f67c8c74a",
+      "label": "mediates"
+    },
+    {
+      "source": "https://w3id.org/kcro/data#ServiceRouting-35c3e1aad343",
+      "target": "https://w3id.org/kcro/data#Pod-53765566ce51",
+      "label": "mediates"
+    },
+    {
+      "source": "https://w3id.org/kcro/data#Container-c4ba69f74a17",
+      "target": "https://w3id.org/kcro/data#Pod-53765566ce51",
+      "label": "isProperPartOf"
+    },
+    {
+      "source": "https://w3id.org/kcro/data#PrivilegedContainer-9920e6bccc0e",
+      "target": "https://w3id.org/kcro/data#Container-c4ba69f74a17",
+      "label": "inheresIn"
+    },
+    {
+      "source": "https://w3id.org/kcro/data#NodePortExposure-076456ff7d3f",
+      "target": "https://w3id.org/kcro/data#Service-89209d73f341",
+      "label": "inheresIn"
+    },
+    {
+      "source": "https://w3id.org/kcro/data#ServiceRouting-8f4b0e53c11e",
+      "target": "https://w3id.org/kcro/data#Service-89209d73f341",
+      "label": "mediates"
+    },
+    {
+      "source": "https://w3id.org/kcro/data#ServiceRouting-8f4b0e53c11e",
+      "target": "https://w3id.org/kcro/data#Pod-08bd14d3bdac",
+      "label": "mediates"
+    },
+    {
+      "source": "https://w3id.org/kcro/data#Container-070d9423b7eb",
+      "target": "https://w3id.org/kcro/data#Pod-08bd14d3bdac",
+      "label": "isProperPartOf"
+    },
+    {
+      "source": "https://w3id.org/kcro/data#PrivilegedContainer-a7499545e8ba",
+      "target": "https://w3id.org/kcro/data#Container-070d9423b7eb",
+      "label": "inheresIn"
+    }
+  ]
+};
+    const colorMap = { Object:"#2b6cb0", Relator:"#6b46c1", Vulnerability:"#c53030", Exposure:"#2c7a7b" };
+    const Graph = ForceGraph3D()(document.getElementById('graph-container'))
+      .graphData(graphData)
+      .backgroundColor('#ffffff')
+      .nodeLabel('id')
+      .nodeColor(n => colorMap[n.group] || '#333333')
+      .nodeRelSize(5)
+      .nodeThreeObjectExtend(true)
+      .nodeThreeObject(n => {
+        if (typeof SpriteText === 'undefined') return false;
+        const s = new SpriteText(n.label);
+        s.color = colorMap[n.group] || '#ffffff'; s.textHeight = 3;
+        return s;
+      })
+      .linkLabel('label')
+      .linkColor(() => '#8a94a6')
+      .linkOpacity(0.85)
+      .linkWidth(1.6)
+      .linkDirectionalArrowLength(3)
+      .linkDirectionalArrowRelPos(1)
+      .linkDirectionalParticles(2)
+      .linkDirectionalParticleSpeed(0.006)
+      .onNodeClick(n => {
+        const d = 60, r = 1 + d / Math.hypot(n.x, n.y, n.z);
+        Graph.cameraPosition({ x: n.x*r, y: n.y*r, z: n.z*r }, n, 1500);
+      });
+  </script>
+</body>
+</html>
