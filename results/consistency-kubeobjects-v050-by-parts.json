@@ -1,0 +1,383 @@
+{
+  "corpus": "kubeobjects-v050",
+  "parts": 46,
+  "verdicts": {
+    "consistent": 46
+  },
+  "objects": 75340,
+  "repositories": 2997,
+  "triples_sum_of_parts": 929241,
+  "reasoner_seconds_total": 382.5,
+  "wall_clock_seconds": 411.5,
+  "note": "each part is a set of whole repositories; per-part consistency, not a proof for the union",
+  "records": [
+    {
+      "part": 1,
+      "repositories": 11,
+      "objects": 4570,
+      "triples": 51289,
+      "verdict": "consistent",
+      "reasoner_seconds": 46.4
+    },
+    {
+      "part": 2,
+      "repositories": 15,
+      "objects": 3301,
+      "triples": 38167,
+      "verdict": "consistent",
+      "reasoner_seconds": 25.2
+    },
+    {
+      "part": 3,
+      "repositories": 41,
+      "objects": 1503,
+      "triples": 18673,
+      "verdict": "consistent",
+      "reasoner_seconds": 6.8
+    },
+    {
+      "part": 4,
+      "repositories": 32,
+      "objects": 1893,
+      "triples": 25012,
+      "verdict": "consistent",
+      "reasoner_seconds": 14.5
+    },
+    {
+      "part": 5,
+      "repositories": 34,
+      "objects": 1648,
+      "triples": 16269,
+      "verdict": "consistent",
+      "reasoner_seconds": 5.1
+    },
+    {
+      "part": 6,
+      "repositories": 44,
+      "objects": 1594,
+      "triples": 19778,
+      "verdict": "consistent",
+      "reasoner_seconds": 7.2
+    },
+    {
+      "part": 7,
+      "repositories": 37,
+      "objects": 1533,
+      "triples": 20173,
+      "verdict": "consistent",
+      "reasoner_seconds": 8.1
+    },
+    {
+      "part": 8,
+      "repositories": 22,
+      "objects": 1513,
+      "triples": 12811,
+      "verdict": "consistent",
+      "reasoner_seconds": 3.4
+    },
+    {
+      "part": 9,
+      "repositories": 55,
+      "objects": 1599,
+      "triples": 18074,
+      "verdict": "consistent",
+      "reasoner_seconds": 5.2
+    },
+    {
+      "part": 10,
+      "repositories": 61,
+      "objects": 1544,
+      "triples": 21575,
+      "verdict": "consistent",
+      "reasoner_seconds": 9.4
+    },
+    {
+      "part": 11,
+      "repositories": 58,
+      "objects": 1514,
+      "triples": 18191,
+      "verdict": "consistent",
+      "reasoner_seconds": 7.7
+    },
+    {
+      "part": 12,
+      "repositories": 44,
+      "objects": 1564,
+      "triples": 17984,
+      "verdict": "consistent",
+      "reasoner_seconds": 5.6
+    },
+    {
+      "part": 13,
+      "repositories": 47,
+      "objects": 1503,
+      "triples": 16677,
+      "verdict": "consistent",
+      "reasoner_seconds": 5.7
+    },
+    {
+      "part": 14,
+      "repositories": 60,
+      "objects": 1552,
+      "triples": 21038,
+      "verdict": "consistent",
+      "reasoner_seconds": 9.4
+    },
+    {
+      "part": 15,
+      "repositories": 39,
+      "objects": 1524,
+      "triples": 15344,
+      "verdict": "consistent",
+      "reasoner_seconds": 4.2
+    },
+    {
+      "part": 16,
+      "repositories": 62,
+      "objects": 1522,
+      "triples": 15849,
+      "verdict": "consistent",
+      "reasoner_seconds": 3.9
+    },
+    {
+      "part": 17,
+      "repositories": 68,
+      "objects": 1581,
+      "triples": 18422,
+      "verdict": "consistent",
+      "reasoner_seconds": 6.0
+    },
+    {
+      "part": 18,
+      "repositories": 51,
+      "objects": 1552,
+      "triples": 17585,
+      "verdict": "consistent",
+      "reasoner_seconds": 5.4
+    },
+    {
+      "part": 19,
+      "repositories": 52,
+      "objects": 1536,
+      "triples": 17932,
+      "verdict": "consistent",
+      "reasoner_seconds": 5.0
+    },
+    {
+      "part": 20,
+      "repositories": 54,
+      "objects": 1526,
+      "triples": 13473,
+      "verdict": "consistent",
+      "reasoner_seconds": 4.6
+    },
+    {
+      "part": 21,
+      "repositories": 48,
+      "objects": 1578,
+      "triples": 18276,
+      "verdict": "consistent",
+      "reasoner_seconds": 6.6
+    },
+    {
+      "part": 22,
+      "repositories": 65,
+      "objects": 1547,
+      "triples": 19680,
+      "verdict": "consistent",
+      "reasoner_seconds": 7.0
+    },
+    {
+      "part": 23,
+      "repositories": 77,
+      "objects": 1522,
+      "triples": 19671,
+      "verdict": "consistent",
+      "reasoner_seconds": 6.7
+    },
+    {
+      "part": 24,
+      "repositories": 57,
+      "objects": 1507,
+      "triples": 17998,
+      "verdict": "consistent",
+      "reasoner_seconds": 4.9
+    },
+    {
+      "part": 25,
+      "repositories": 64,
+      "objects": 1600,
+      "triples": 20631,
+      "verdict": "consistent",
+      "reasoner_seconds": 7.5
+    },
+    {
+      "part": 26,
+      "repositories": 65,
+      "objects": 1514,
+      "triples": 19667,
+      "verdict": "consistent",
+      "reasoner_seconds": 7.7
+    },
+    {
+      "part": 27,
+      "repositories": 80,
+      "objects": 1521,
+      "triples": 20740,
+      "verdict": "consistent",
+      "reasoner_seconds": 8.0
+    },
+    {
+      "part": 28,
+      "repositories": 75,
+      "objects": 1593,
+      "triples": 20389,
+      "verdict": "consistent",
+      "reasoner_seconds": 8.5
+    },
+    {
+      "part": 29,
+      "repositories": 42,
+      "objects": 1546,
+      "triples": 19826,
+      "verdict": "consistent",
+      "reasoner_seconds": 7.7
+    },
+    {
+      "part": 30,
+      "repositories": 78,
+      "objects": 1507,
+      "triples": 19041,
+      "verdict": "consistent",
+      "reasoner_seconds": 5.9
+    },
+    {
+      "part": 31,
+      "repositories": 89,
+      "objects": 1515,
+      "triples": 19476,
+      "verdict": "consistent",
+      "reasoner_seconds": 6.4
+    },
+    {
+      "part": 32,
+      "repositories": 97,
+      "objects": 1526,
+      "triples": 20340,
+      "verdict": "consistent",
+      "reasoner_seconds": 7.9
+    },
+    {
+      "part": 33,
+      "repositories": 82,
+      "objects": 1502,
+      "triples": 17851,
+      "verdict": "consistent",
+      "reasoner_seconds": 6.0
+    },
+    {
+      "part": 34,
+      "repositories": 68,
+      "objects": 1501,
+      "triples": 19267,
+      "verdict": "consistent",
+      "reasoner_seconds": 6.0
+    },
+    {
+      "part": 35,
+      "repositories": 74,
+      "objects": 1504,
+      "triples": 19795,
+      "verdict": "consistent",
+      "reasoner_seconds": 7.2
+    },
+    {
+      "part": 36,
+      "repositories": 95,
+      "objects": 1503,
+      "triples": 20316,
+      "verdict": "consistent",
+      "reasoner_seconds": 8.0
+    },
+    {
+      "part": 37,
+      "repositories": 76,
+      "objects": 1538,
+      "triples": 21153,
+      "verdict": "consistent",
+      "reasoner_seconds": 10.1
+    },
+    {
+      "part": 38,
+      "repositories": 104,
+      "objects": 1559,
+      "triples": 20629,
+      "verdict": "consistent",
+      "reasoner_seconds": 7.4
+    },
+    {
+      "part": 39,
+      "repositories": 103,
+      "objects": 1506,
+      "triples": 21140,
+      "verdict": "consistent",
+      "reasoner_seconds": 8.2
+    },
+    {
+      "part": 40,
+      "repositories": 123,
+      "objects": 1526,
+      "triples": 22350,
+      "verdict": "consistent",
+      "reasoner_seconds": 11.0
+    },
+    {
+      "part": 41,
+      "repositories": 98,
+      "objects": 1527,
+      "triples": 21420,
+      "verdict": "consistent",
+      "reasoner_seconds": 10.0
+    },
+    {
+      "part": 42,
+      "repositories": 76,
+      "objects": 1558,
+      "triples": 18183,
+      "verdict": "consistent",
+      "reasoner_seconds": 5.5
+    },
+    {
+      "part": 43,
+      "repositories": 84,
+      "objects": 1571,
+      "triples": 21066,
+      "verdict": "consistent",
+      "reasoner_seconds": 7.8
+    },
+    {
+      "part": 44,
+      "repositories": 123,
+      "objects": 1503,
+      "triples": 21235,
+      "verdict": "consistent",
+      "reasoner_seconds": 8.6
+    },
+    {
+      "part": 45,
+      "repositories": 91,
+      "objects": 1547,
+      "triples": 21717,
+      "verdict": "consistent",
+      "reasoner_seconds": 9.4
+    },
+    {
+      "part": 46,
+      "repositories": 76,
+      "objects": 947,
+      "triples": 13068,
+      "verdict": "consistent",
+      "reasoner_seconds": 3.7
+    }
+  ]
+}

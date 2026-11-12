@@ -1,0 +1,35 @@
+cff-version: 1.2.0
+message: "If you use KCRO, please cite it as below, together with the KubeObjects corpus."
+title: "KCRO: Kubernetes Cybersecurity Research Ontology"
+type: dataset
+version: "0.5.0-draft"
+date-released: "2026-11-12"
+authors:
+  - family-names: Dorneanu
+    given-names: Andrei
+    orcid: "https://orcid.org/0009-0000-0969-772X"
+    affiliation: "University of Twente"
+url: "https://w3id.org/kcro"
+repository-code: "https://github.com/endaibos/KCRO"
+license: CC-BY-4.0
+keywords:
+  - Kubernetes
+  - cybersecurity
+  - ontology
+  - knowledge graph
+  - gUFO
+  - FAIR
+abstract: >-
+  An OWL 2 DL ontology of Kubernetes security misconfigurations, grounded in gUFO, with
+  a knowledge graph instantiated from the KubeObjects corpus and a deterministic mapping
+  pipeline. Version 0.5.0 adds custom resources, GitOps delivery kinds and
+  instance-level provenance, and is validated on three further corpora.
+references:
+  - type: conference-paper
+    title: "KubeObjects: A Dataset of Real-World Kubernetes Objects"
+    authors:
+      - family-names: Grella
+      - family-names: Aliforenko
+      - family-names: Mariot
+    year: 2026
+    doi: "10.1145/3793302.3793317"

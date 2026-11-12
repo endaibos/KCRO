@@ -1,0 +1,15 @@
+{
+  "title": "KCRO: Kubernetes Cybersecurity Research Ontology",
+  "upload_type": "dataset",
+  "version": "0.5.0-draft",
+  "description": "An OWL 2 DL ontology of Kubernetes security misconfigurations, grounded in gUFO, with a knowledge graph instantiated from the KubeObjects corpus and a deterministic mapping pipeline. Version 0.5.0 adds custom resources, GitOps delivery kinds and instance-level provenance, and is validated on three further corpora.",
+  "creators": [
+    {"name": "Dorneanu, Andrei", "affiliation": "University of Twente", "orcid": "0009-0000-0969-772X"}
+  ],
+  "license": "cc-by-4.0",
+  "keywords": ["Kubernetes", "cybersecurity", "ontology", "knowledge graph", "gUFO", "FAIR"],
+  "related_identifiers": [
+    {"identifier": "https://w3id.org/kcro", "relation": "isIdenticalTo", "scheme": "url"},
+    {"identifier": "10.1145/3793302.3793317", "relation": "isDerivedFrom", "scheme": "doi"}
+  ]
+}

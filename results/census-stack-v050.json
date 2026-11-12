@@ -27,7 +27,7 @@
   "ImageReference": 109051,
   "ImageTagLatest": 13302,
   "ImageTagMissing": 35365,
-  "Ingress": 4601,
+  "Ingress": 4603,
   "IngressBackend": 1894,
   "Job": 5582,
   "LoadBalancerExposure": 8192,

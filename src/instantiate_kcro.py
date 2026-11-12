@@ -197,7 +197,11 @@ def kcro_class_for(kind, doc):
     cls = GROUP_KIND_CLASS.get((g, kind))
     if cls:
         return cls
-    if kind in KIND_CLASS and g in EXPECTED_GROUPS.get(kind, {g}):
+    # A native kind name is refused only when the manifest names a DNS-style group
+    # that is not one of the kind's own. A manifest with no apiVersion, or with a
+    # malformed one such as "networking", is an incomplete native manifest, not a
+    # third-party resource, and is typed as in v0.3.0.
+    if kind in KIND_CLASS and (g in EXPECTED_GROUPS.get(kind, {g}) or "." not in g):
         return KIND_CLASS[kind]               # unchanged 17-kind behaviour
     if ENABLE_OPEN_CATEGORY and "." in g \
             and g not in NATIVE_GROUPS and g not in NON_CLUSTER_GROUPS:

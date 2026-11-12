@@ -26,9 +26,11 @@ G = "http://purl.org/nemo/gufo#"
 def k(x): return URIRef(K + x)
 def g(x): return URIRef(G + x)
 INHERES = g("inheresIn"); MEDIATES = g("mediates"); PARTOF = g("isProperPartOf")
+DERIVED = URIRef("http://www.w3.org/ns/prov#wasDerivedFrom"); REPOSTARS = k("repoStars")
 
 def load(path):
-    t = time.time(); gr = Graph(); gr.parse(path, format="turtle")
+    fmt = "nt" if str(path).endswith((".nt", ".ntriples")) else "turtle"
+    t = time.time(); gr = Graph(); gr.parse(path, format=fmt)
     print(f"loaded {len(gr):,} triples in {time.time()-t:.0f}s")
     return gr
 
@@ -58,9 +60,16 @@ def build_index(gr):
     pod_parts = defaultdict(set)            # pod -> set(container)
     for s, _, o in gr.triples((None, PARTOF, None)):
         partof[s] = o; pod_parts[o].add(s)
+    derived = {}                            # object/container -> source repository
+    for s, _, o in gr.triples((None, DERIVED, None)):
+        derived[s] = o
+    repo_stars = {}                         # repository -> stars, where known
+    for s, _, o in gr.triples((None, REPOSTARS, None)):
+        repo_stars[s] = int(o)
     return dict(typ=typ, inheres=inheres, bearer_aspects=bearer_aspects,
                 mediates=mediates, mediated_by=mediated_by,
-                partof=partof, pod_parts=pod_parts)
+                partof=partof, pod_parts=pod_parts,
+                derived=derived, repo_stars=repo_stars)
 
 def run_cqs(gr):
     """Run the 12 CQs as indexed Python joins. Returns [(label, count, secs)]
@@ -69,6 +78,7 @@ def run_cqs(gr):
     typ = ix["typ"]; bearer_aspects = ix["bearer_aspects"]
     inheres = ix["inheres"]; mediates = ix["mediates"]; mediated_by = ix["mediated_by"]
     partof = ix["partof"]; pod_parts = ix["pod_parts"]
+    derived = ix["derived"]; repo_stars = ix["repo_stars"]
     has = lambda ind, cls: ind in typ.get(cls, ())
 
     results = []
@@ -162,9 +172,34 @@ def run_cqs(gr):
                     if wild_roles & mediates.get(rb, set()): out.add(sa)
         return len(out)
     t("CQ11", cq11)
-    # CQ12 provenance — requires the repository/provenance extension (not in v0.3.0
-    # scope), so it returns 0 here by design.
-    t("CQ12", lambda: 0)
+    # CQ12 provenance: source repositories that host a privileged container. Needs
+    # the provenance links of v0.4.0 and later; on the v0.3.0 ABox it is 0.
+    def cq12():
+        out = set()
+        for a in typ.get("PrivilegedContainer", ()):
+            repo = derived.get(inheres.get(a))
+            if repo is not None:
+                out.add(repo)
+        with_stars = sum(1 for r in out if r in repo_stars)
+        print(f"        ({with_stars:,} of them carry repository star counts)")
+        return len(out)
+    t("CQ12", cq12)
+    # --- questions over the v0.5.0 classes -------------------------------------
+    # CQ13: custom resources whose type is declared by a CRD in the same repository
+    def cq13():
+        return len({m for r in typ.get("SchemaConformance", ())
+                    for m in mediates.get(r, ()) if not has(m, "CustomResourceDefinition")})
+    t("CQ13", cq13)
+    # CQ14: distinct external sources (git, OCI, Helm) that delivery resources pull from
+    def cq14():
+        srcs = set()
+        for r in typ.get("SourceReference", ()):
+            for m in mediates.get(r, ()):
+                if any(has(m, c) for c in ("GitRepository", "OCIRepository",
+                                           "HelmRepository", "HelmChart")):
+                    srcs.add(m)
+        return len(srcs)
+    t("CQ14", cq14)
     return results
 
 def main():
@@ -172,10 +207,17 @@ def main():
     ap.add_argument("--abox", default=str(ROOT / "ontology" / "kcro-abox.ttl"))
     ap.add_argument("--cqs", action="store_true")
     ap.add_argument("--counts", action="store_true")
+    ap.add_argument("--out", help="write the CQ answers to this JSON file")
     a = ap.parse_args()
     gr = load(a.abox)
     if a.counts: counts(gr)
-    if a.cqs: run_cqs(gr)
+    if a.cqs:
+        res = run_cqs(gr)
+        if a.out:
+            import json
+            Path(a.out).write_text(json.dumps(
+                {"abox": a.abox, "triples": len(gr),
+                 "answers": {label: n for label, n, _ in res}}, indent=2) + "\n")
 
 if __name__ == "__main__":
     main()

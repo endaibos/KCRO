@@ -3,21 +3,21 @@
   "abox": "ontology/kcro-abox-gitops-v050.ttl",
   "verdict": "consistent",
   "removed_for_reasoning": [
-    "https://w3id.org/kcro http://purl.org/dc/terms/issued 2026-06-10",
-    "http://purl.org/nemo/gufo# http://purl.org/dc/terms/modified 2021-11-01",
     "http://purl.org/nemo/gufo#hasBeginPointInXSDDate http://www.w3.org/2000/01/rdf-schema#range http://www.w3.org/2001/XMLSchema#date",
-    "http://purl.org/nemo/gufo#hasEndPointInXSDDate http://www.w3.org/2000/01/rdf-schema#range http://www.w3.org/2001/XMLSchema#date",
+    "http://purl.org/nemo/gufo# http://purl.org/dc/terms/modified 2021-11-01",
     "https://w3id.org/kcro http://purl.org/dc/terms/modified 2026-11-12",
-    "http://purl.org/nemo/gufo# http://purl.org/dc/terms/created 2019-11-11"
+    "http://purl.org/nemo/gufo#hasEndPointInXSDDate http://www.w3.org/2000/01/rdf-schema#range http://www.w3.org/2001/XMLSchema#date",
+    "http://purl.org/nemo/gufo# http://purl.org/dc/terms/created 2019-11-11",
+    "https://w3id.org/kcro http://purl.org/dc/terms/issued 2026-06-10"
   ],
   "unsatisfiable_classes": [],
   "detail": "",
   "reasoner": "HermiT via owlready2 0.51",
-  "triples_total": 93735,
-  "triples_tbox": 1579,
+  "triples_total": 93754,
+  "triples_tbox": 1598,
   "triples_abox": 92156,
-  "merge_seconds": 2.2,
-  "reasoner_seconds": 73.1,
+  "merge_seconds": 1.8,
+  "reasoner_seconds": 65.6,
   "java_memory_mb": 24000,
   "timeout_seconds": 1500
 }

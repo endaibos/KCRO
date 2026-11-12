@@ -1,0 +1,20 @@
+{
+  "abox": "ontology/kcro-abox-rahman-v050.ttl",
+  "triples": 26110,
+  "answers": {
+    "CQ1": 16,
+    "CQ2": 366,
+    "CQ3": 358,
+    "CQ4": 232,
+    "CQ5": 65,
+    "CQ6": 5,
+    "CQ7": 119,
+    "CQ8": 38,
+    "CQ9": 2,
+    "CQ10": 12,
+    "CQ11": 0,
+    "CQ12": 4,
+    "CQ13": 0,
+    "CQ14": 0
+  }
+}

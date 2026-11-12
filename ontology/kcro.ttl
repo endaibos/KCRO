@@ -1654,3 +1654,25 @@ kcro:ImageTagMissing rdfs:comment "The image-tag quality of a container whose im
 kcro:ThreatIntelDescriptor rdfs:comment "An information object that describes a KCRO entity in terms of an external threat-intelligence vocabulary (UCO, STIX, CWE), providing an attachment point for alignment without asserting class equivalence."@en .
 kcro:causesLoss rdfs:comment "Relates a threat event to the loss event it brings about, following the COVER risk pattern."@en .
 kcro:cweId rdfs:comment "Associates a KCRO vulnerability class with the identifier of the corresponding Common Weakness Enumeration (CWE) entry, where one applies."@en .
+
+
+###  Descriptions added in 0.5.0 for terms that carried only a label
+kcro:AbsentIngressTLS rdfs:comment "An Ingress that declares no spec.tls section, so the routes it exposes are served without TLS. An omission: the vulnerability is the absence of the field."@en .
+kcro:AbsentResourceLimit rdfs:comment "A container that declares no resources.limits, so its CPU and memory use is unbounded. An omission: the vulnerability is the absence of the field."@en .
+kcro:AbsentRunAsNonRoot rdfs:comment "A pod whose securityContext does not set runAsNonRoot, so nothing prevents its containers from running as root. An omission: the vulnerability is the absence of the field."@en .
+kcro:AddedLinuxCapabilities rdfs:comment "A container whose securityContext adds Linux capabilities (capabilities.add is set) beyond the runtime default."@en .
+kcro:AutomountTokenEnabled rdfs:comment "A pod that does not set automountServiceAccountToken to false, so the ServiceAccount token is mounted into it by default. An omission: the vulnerability is the absence of the field."@en .
+kcro:ContainerRunAsRoot rdfs:comment "A container whose securityContext sets runAsUser to 0, i.e. explicitly runs as root."@en .
+kcro:DefaultServiceAccount rdfs:comment "A pod that names no dedicated ServiceAccount and therefore runs under the namespace's default one. An omission: the vulnerability is the absence of the field."@en .
+kcro:HostIPCPod rdfs:comment "A pod that sets hostIPC to true and so shares the host's IPC namespace."@en .
+kcro:HostNetworkPod rdfs:comment "A pod that sets hostNetwork to true and so shares the host's network namespace."@en .
+kcro:HostPIDPod rdfs:comment "A pod that sets hostPID to true and so shares the host's process namespace."@en .
+kcro:PodRunAsRoot rdfs:comment "A pod whose pod-level securityContext sets runAsUser to 0, i.e. explicitly runs its containers as root."@en .
+kcro:PrivilegeEscalationAllowed rdfs:comment "A container whose securityContext sets allowPrivilegeEscalation to true, so a process can gain more privileges than its parent."@en .
+kcro:RunAsNonRootDisabled rdfs:comment "A pod whose securityContext sets runAsNonRoot to false, explicitly switching the protection off."@en .
+kcro:WildcardAPIGroups rdfs:comment "A Role or ClusterRole with a rule whose apiGroups contain the wildcard '*'."@en .
+kcro:WildcardResources rdfs:comment "A Role or ClusterRole with a rule whose resources contain the wildcard '*'."@en .
+kcro:WildcardVerbs rdfs:comment "A Role or ClusterRole with a rule whose verbs contain the wildcard '*'."@en .
+kcro:repoStars rdfs:comment "GitHub star count of the source repository at corpus collection time, where the corpus provides it."@en .
+kcro:repoForks rdfs:comment "GitHub fork count of the source repository at corpus collection time, where the corpus provides it."@en .
+kcro:repoLanguage rdfs:comment "Primary language GitHub reports for the source repository, where the corpus provides it."@en .

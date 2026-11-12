@@ -265,9 +265,9 @@ re-applied.
 | start | 17 kinds | 38.32% | 69.08% | 80.67% | 84.07% |
 | S0 | declare six terms the ABoxes already used | same | same | same | same |
 | S1 | `CustomResourceDefinition` under `ExtensionResource` | 47.67% | 69.08% | 82.32% | 87.04% |
-| S1b | correction: reject native kind names from foreign API groups | 47.56% | 69.00% | 82.25% | 87.04% |
-| S3 | eight Flux / Argo CD kinds, `SourceReference` | 57.96% | 70.41% | | 87.04% |
-| S2 | open `CustomResource` category, `SchemaConformance` | 83.02% | 84.72% | 94.64% | 87.04% |
+| S1b | correction: reject native kind names from foreign API groups | 47.56% | 69.04% | 82.27% | 87.04% |
+| S3 | eight Flux / Argo CD kinds, `SourceReference` | 57.96% | 70.45% | 82.59% | 87.04% |
+| S2 | open `CustomResource` category, `SchemaConformance` | 83.02% | 84.76% | 94.67% | 87.04% |
 
 Design points worth knowing before changing any of it:
 
@@ -294,16 +294,25 @@ Design points worth knowing before changing any of it:
   undeclared, so they did not test this.
 
 **Consistency.** No unsatisfiable class among the 86. Rahman, GitOps and both GitOps
-sub-corpora are consistent on the v0.5.0 builds. KubeObjects timed out after 45 minutes
-on a 24 GB heap.
+sub-corpora are consistent on the v0.5.0 builds. KubeObjects does not finish as one
+ABox (45 minutes, 24 GB heap), but split into 46 groups of whole repositories every
+group is consistent (`src/consistency_by_parts.py`).
+
+**Competency questions.** CQ12 is answered (140 repositories on KubeObjects); it had
+stayed a placeholder after the provenance merge. CQ13 and CQ14 query the new relators.
+CQ1 to CQ11 are unchanged on KubeObjects apart from six third-party objects no longer
+typed as native kinds.
 
 ## 7b. Known gaps
 
 - **Not released.** Version metadata says `0.5.0-draft`; nothing is pushed, tagged or
   deposited. The w3id still resolves to `main` (v0.3.0) without content negotiation.
-- **No full-scale consistency result** for KubeObjects or stack.
-- **Competency questions were not re-run** on the v0.5.0 graphs, and no competency
-  question yet uses the new classes or relators.
+- **No single-ABox consistency result** for KubeObjects (per-part only) and none for
+  stack.
+- **CQ9 is a lower bound**, and KubeObjects is deduplicated within repositories, not
+  across them. Both are properties of the corpus and are left as stated limitations.
+- **No alignment axioms** to UCO, STIX or CWE, no public SPARQL endpoint, no content
+  negotiation at the w3id, no DOI yet (`CITATION.cff` and `.zenodo.json` are prepared).
 - **GitOps corpus selection.** All 57 repositories were admitted by GitHub topic; the
   rule's second arm (contains a Flux or Argo resource) never admitted one by itself.
 - **Vulnerability classes are unchanged.** Custom resources are typed and linked, but

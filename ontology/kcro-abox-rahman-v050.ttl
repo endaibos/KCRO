@@ -744,6 +744,10 @@
     gufo:inheresIn :Container-42517395bc45 ;
     kcro:datasetKey "container.resources.limits=missing" .
 
+:AbsentResourceLimit-68712428697c a kcro:AbsentResourceLimit ;
+    gufo:inheresIn :Container-e2eb0f0a554a ;
+    kcro:datasetKey "container.resources.limits=missing" .
+
 :AbsentResourceLimit-6915b6052bdb a kcro:AbsentResourceLimit ;
     gufo:inheresIn :Container-d5f084cd33bc ;
     kcro:datasetKey "container.resources.limits=missing" .
@@ -1786,6 +1790,10 @@
 
 :AbsentRunAsNonRoot-172683a058fb a kcro:AbsentRunAsNonRoot ;
     gufo:inheresIn :Pod-3382b6fd0973 ;
+    kcro:datasetKey "pod.securityContext.runAsNonRoot=missing" .
+
+:AbsentRunAsNonRoot-1726f8426cbb a kcro:AbsentRunAsNonRoot ;
+    gufo:inheresIn :Pod-9f2e70ccdfdd ;
     kcro:datasetKey "pod.securityContext.runAsNonRoot=missing" .
 
 :AbsentRunAsNonRoot-1735dc474f27 a kcro:AbsentRunAsNonRoot ;
@@ -5234,6 +5242,10 @@
 
 :AutomountTokenEnabled-ea83453866bb a kcro:AutomountTokenEnabled ;
     gufo:inheresIn :Pod-d1a3e579a791 ;
+    kcro:datasetKey "pod.automountServiceAccountToken=missing" .
+
+:AutomountTokenEnabled-eacbd46ea9c8 a kcro:AutomountTokenEnabled ;
+    gufo:inheresIn :Pod-9f2e70ccdfdd ;
     kcro:datasetKey "pod.automountServiceAccountToken=missing" .
 
 :AutomountTokenEnabled-eb04b7b9d3c9 a kcro:AutomountTokenEnabled ;
@@ -10349,6 +10361,10 @@
     gufo:inheresIn :Pod-f3ab0e60bda3 ;
     kcro:datasetKey "pod.serviceAccount=default" .
 
+:DefaultServiceAccount-410a888691da a kcro:DefaultServiceAccount ;
+    gufo:inheresIn :Pod-9f2e70ccdfdd ;
+    kcro:datasetKey "pod.serviceAccount=default" .
+
 :DefaultServiceAccount-425b36863338 a kcro:DefaultServiceAccount ;
     gufo:inheresIn :Pod-82e6f82055b6 ;
     kcro:datasetKey "pod.serviceAccount=default" .
@@ -13029,6 +13045,10 @@
     gufo:mediates :Container-16158bf790fe,
         :ContainerImage-4718e36311db .
 
+:ImageReference-85e85db4a037 a kcro:ImageReference ;
+    gufo:mediates :Container-e2eb0f0a554a,
+        :ContainerImage-7f5b35b21cf2 .
+
 :ImageReference-863ef67cd98d a kcro:ImageReference ;
     gufo:mediates :Container-77fd24f67730,
         :ContainerImage-c1ad21aea019 .
@@ -14475,6 +14495,10 @@
 
 :ImageTagMissing-3f2cf2096072 a kcro:ImageTagMissing ;
     gufo:inheresIn :Container-b29252998b99 ;
+    kcro:datasetKey "container.image.tag=missing" .
+
+:ImageTagMissing-3f3fd744de0c a kcro:ImageTagMissing ;
+    gufo:inheresIn :Container-e2eb0f0a554a ;
     kcro:datasetKey "container.image.tag=missing" .
 
 :ImageTagMissing-412583fc4d6e a kcro:ImageTagMissing ;
@@ -16887,6 +16911,10 @@
 :ServiceRouting-63927d6cb4ae a kcro:ServiceRouting ;
     gufo:mediates :Pod-ebb05a2c3246,
         :Service-b95bd5fd3fa6 .
+
+:ServiceRouting-63e5a90f31d0 a kcro:ServiceRouting ;
+    gufo:mediates :Pod-9f2e70ccdfdd,
+        :Service-1bb8d09a1513 .
 
 :ServiceRouting-652fad26db26 a kcro:ServiceRouting ;
     gufo:mediates :Pod-d2185a494a70,
@@ -19416,6 +19444,10 @@
     gufo:mediates :CronJob-86d1ca094cd5,
         :Pod-637be0e78b1d .
 
+:WorkloadManagement-9e152d2b1a67 a kcro:WorkloadManagement ;
+    gufo:mediates :Deployment-e62a772f2482,
+        :Pod-9f2e70ccdfdd .
+
 :WorkloadManagement-9ee12131ef97 a kcro:WorkloadManagement ;
     gufo:mediates :Deployment-785fe9078e37,
         :Pod-dc94dcd73ce6 .
@@ -21570,6 +21602,9 @@
 
 :ContainerImage-7f222e53f5ec a kcro:ContainerImage ;
     rdfs:label "ubuntu:16.04" .
+
+:ContainerImage-7f5b35b21cf2 a kcro:ContainerImage ;
+    rdfs:label "gcr.io/gittix-dev-293814/tickets" .
 
 :ContainerImage-80752df73d97 a kcro:ContainerImage ;
     rdfs:label "navikco/markets:latest" .
@@ -24734,6 +24769,13 @@
     kcro:namespace "default" ;
     kcro:resourceKind "Deployment" .
 
+:Deployment-e62a772f2482 a kcro:Deployment ;
+    rdfs:label "Deployment/tickets-depl"@en ;
+    prov:wasDerivedFrom :Repository-ce595e1db610 ;
+    kcro:apiGroup "" ;
+    kcro:namespace "default" ;
+    kcro:resourceKind "Deployment" .
+
 :Deployment-e67152ae6ff8 a kcro:Deployment ;
     rdfs:label "Deployment/comments-depl"@en ;
     prov:wasDerivedFrom :Repository-ce595e1db610 ;
@@ -25739,14 +25781,6 @@
 :Service-08436ddebdf5 a kcro:Service ;
     rdfs:label "Service/envoy"@en ;
     prov:wasDerivedFrom :Repository-4d2ca0718eed ;
-    kcro:apiGroup "" ;
-    kcro:apiVersion "v1" ;
-    kcro:namespace "default" ;
-    kcro:resourceKind "Service" .
-
-:Service-1bb8d09a1513 a kcro:Service ;
-    rdfs:label "Service/tickets-srv"@en ;
-    prov:wasDerivedFrom :Repository-ce595e1db610 ;
     kcro:apiGroup "" ;
     kcro:apiVersion "v1" ;
     kcro:namespace "default" ;
@@ -27765,6 +27799,14 @@
 :Service-1746ee188ad8 a kcro:Service ;
     rdfs:label "Service/rabbitmq-management"@en ;
     prov:wasDerivedFrom :Repository-ab32b76e78b5 ;
+    kcro:apiGroup "" ;
+    kcro:apiVersion "v1" ;
+    kcro:namespace "default" ;
+    kcro:resourceKind "Service" .
+
+:Service-1bb8d09a1513 a kcro:Service ;
+    rdfs:label "Service/tickets-srv"@en ;
+    prov:wasDerivedFrom :Repository-ce595e1db610 ;
     kcro:apiGroup "" ;
     kcro:apiVersion "v1" ;
     kcro:namespace "default" ;
@@ -30890,6 +30932,10 @@
     gufo:isProperPartOf :Pod-5f60d6ef4d96 ;
     prov:wasDerivedFrom :Repository-1311922ff193 .
 
+:Container-e2eb0f0a554a a kcro:Container ;
+    gufo:isProperPartOf :Pod-9f2e70ccdfdd ;
+    prov:wasDerivedFrom :Repository-ce595e1db610 .
+
 :Container-e3e503e01a12 a kcro:Container ;
     gufo:isProperPartOf :Pod-0697bf69bd2b ;
     prov:wasDerivedFrom :Repository-ce595e1db610 .
@@ -32341,6 +32387,8 @@
     kcro:resourceKind "Pod" .
 
 :Pod-9e980107e902 a kcro:Pod .
+
+:Pod-9f2e70ccdfdd a kcro:Pod .
 
 :Pod-a0adfd9dda68 a kcro:Pod .
 

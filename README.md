@@ -72,7 +72,7 @@ rendering of the full 210k-node graph.
 
 Coverage of the mapping in v0.3.0: **80.7 %** of corpus objects (60,774 / 75,340)
 fall into an in-scope KCRO class; the rest are the open long tail (CRDs, etc.).
-With the v0.5.0-draft extension the same corpus reaches 94.6 %.
+With the v0.5.0-draft extension the same corpus reaches 94.7 %.
 
 ---
 
