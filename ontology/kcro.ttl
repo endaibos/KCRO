@@ -9,6 +9,7 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix vann: <http://purl.org/vocab/vann/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
 @base <https://w3id.org/kcro#> .
 
 <https://w3id.org/kcro> rdf:type owl:Ontology ;
@@ -27,11 +28,11 @@ vulnerability as a special disposition."""@en ;
 literature grounding are the author's. Claude (Anthropic) was used as an assistant for ontology review
 and refactoring (the v0.3.0 meta-typing and existential bearer restrictions), for formalising and
 executing the competency-question SPARQL queries, and for documentation. All AI-assisted changes were reviewed by the author; OWL 2 DL consistency was verified by the author with HermiT in Protege."""@en ;
-                         owl:versionIRI <https://w3id.org/kcro/0.3.0> ;
-                         owl:versionInfo "0.3.0-draft" ;
+                         owl:versionIRI <https://w3id.org/kcro/0.5.0> ;
+                         owl:versionInfo "0.5.0-draft" ;
                          dcterms:issued "2026-06-10"^^xsd:date ;
-                         dcterms:modified "2026-06-15"^^xsd:date ;
-                         dcterms:description "An OWL 2 DL ontology of Kubernetes security misconfigurations, grounded in gUFO and the KubeObjects corpus of 75,390 real-world manifests. KCRO models 17 in-scope resource kinds, 24 empirically grounded security-field patterns (split into omission and commission vulnerabilities), and 18 inter-resource relationship types reified as relators, with a COVER-style risk layer."@en ;
+                         dcterms:modified "2026-11-12"^^xsd:date ;
+                         dcterms:description "An OWL 2 DL ontology of Kubernetes security misconfigurations, grounded in gUFO and the KubeObjects corpus of 75,390 real-world manifests. KCRO models 26 in-scope resource kinds (the 17 of v0.3.0, CustomResourceDefinition and eight Flux/Argo CD delivery kinds) plus an open CustomResource category for other third-party kinds, 24 empirically grounded security-field patterns (split into omission and commission vulnerabilities), and 20 inter-resource relationship types reified as relators, with a COVER-style risk layer."@en ;
                          dcterms:publisher "University of Twente"@en ;
                          vann:preferredNamespacePrefix "kcro" ;
                          vann:preferredNamespaceUri "https://w3id.org/kcro#" ;
@@ -95,6 +96,12 @@ kcro:groundingNote rdf:type owl:AnnotationProperty ;
 #    Object Properties
 #################################################################
 
+###  http://www.w3.org/ns/prov#wasDerivedFrom
+prov:wasDerivedFrom rdf:type owl:ObjectProperty ;
+                    rdfs:label "was derived from"@en ;
+                    rdfs:comment "Reused from PROV-O to link an instantiated object or container to the source repository whose manifest it was read from. Declared here rather than imported: KCRO uses this one PROV term, and owl:imports of prov.owl would add its full axiomatisation to every reasoning run."@en .
+
+
 ###  https://w3id.org/kcro#causesLoss
 kcro:causesLoss rdf:type owl:ObjectProperty ;
                 rdfs:domain kcro:ThreatEvent ;
@@ -139,12 +146,65 @@ kcro:manifestedThrough rdf:type owl:ObjectProperty ;
 #    Data properties
 #################################################################
 
+###  https://w3id.org/kcro#apiGroup
+kcro:apiGroup rdf:type owl:DatatypeProperty ;
+              rdfs:domain gufo:Endurant ;
+              rdfs:range xsd:string ;
+              rdfs:label "API group"@en ;
+              rdfs:comment "The DNS-style Kubernetes API group the object belongs to, taken from the group part of apiVersion. The empty string denotes the core group (apiVersion: v1). On a CustomResourceDefinition this is spec.group, the group the CRD declares, not apiextensions.k8s.io."@en .
+
+
+###  https://w3id.org/kcro#apiVersion
+kcro:apiVersion rdf:type owl:DatatypeProperty ;
+                rdfs:domain gufo:Endurant ;
+                rdfs:range xsd:string ;
+                rdfs:label "apiVersion"@en ;
+                rdfs:comment "The manifest's apiVersion literal, verbatim ('group/version', or just 'version' for the core group). Deliberately not functional: a deduplicated individual may carry more than one value where a repository ships the same object at several API versions."@en .
+
+
 ###  https://w3id.org/kcro#cweId
 kcro:cweId rdf:type owl:DatatypeProperty ;
            rdfs:domain kcro:Vulnerability ;
            rdfs:range xsd:string ;
            rdfs:label "CWE id"@en ;
            skos:editorialNote "TODO: attach CWE identifiers to each vulnerability class (e.g. CWE-269 for privilege management, CWE-250 execution with unnecessary privileges, CWE-319 cleartext transmission for AbsentIngressTLS)." .
+
+
+###  https://w3id.org/kcro#namespace
+kcro:namespace rdf:type owl:DatatypeProperty ;
+               rdfs:domain gufo:Endurant ;
+               rdfs:range xsd:string ;
+               rdfs:label "namespace"@en ;
+               rdfs:comment "The Kubernetes namespace the object is declared in, as written in metadata.namespace, defaulting to 'default' where the manifest omits it. Scopes reference resolution: the mapper resolves inter-resource references within one (repository, namespace) pair. Domain is gufo:Endurant, not kcro:KubernetesObject: RoleBinding and ClusterRoleBinding are namespaced yet are modelled as kcro:KubernetesRelation (a gufo:Relator), and gUFO declares gufo:Aspect disjoint from gufo:Object, so the narrower domain would make every binding both an Object and an Aspect."@en .
+
+
+###  https://w3id.org/kcro#repoForks
+kcro:repoForks rdf:type owl:DatatypeProperty ;
+               rdfs:domain kcro:Repository ;
+               rdfs:range xsd:integer ;
+               rdfs:label "repository forks"@en .
+
+
+###  https://w3id.org/kcro#repoLanguage
+kcro:repoLanguage rdf:type owl:DatatypeProperty ;
+                  rdfs:domain kcro:Repository ;
+                  rdfs:range xsd:string ;
+                  rdfs:label "repository primary language"@en .
+
+
+###  https://w3id.org/kcro#repoStars
+kcro:repoStars rdf:type owl:DatatypeProperty ;
+               rdfs:domain kcro:Repository ;
+               rdfs:range xsd:integer ;
+               rdfs:label "repository stars"@en .
+
+
+###  https://w3id.org/kcro#resourceKind
+kcro:resourceKind rdf:type owl:DatatypeProperty ;
+                  rdfs:domain gufo:Endurant ;
+                  rdfs:range xsd:string ;
+                  rdfs:label "resource kind"@en ;
+                  rdfs:comment "The manifest's kind string. On a CustomResourceDefinition this is spec.names.kind, the kind the CRD declares. Carrying (apiGroup, resourceKind) on both a custom resource and its CRD makes them joinable in SPARQL even where the kcro:SchemaConformance relator could not be minted."@en .
 
 
 #################################################################
@@ -205,6 +265,26 @@ kcro:AddedLinuxCapabilities rdf:type owl:Class ;
                             kcro:corpusCount 493 ;
                             kcro:datasetKey "container.capabilities.add=set" ;
                             kcro:groundingNote "Rahman 2024 ('Capability Misuse'); Rahman flags CAP_SYS_ADMIN / CAP_SYS_MODULE specifically — corpus check is broader (any added capability)." .
+
+
+###  https://w3id.org/kcro#ArgoApplication
+kcro:ArgoApplication rdf:type owl:Class ;
+                     rdfs:subClassOf kcro:CustomResource .
+
+
+###  https://w3id.org/kcro#ArgoApplicationSet
+kcro:ArgoApplicationSet rdf:type owl:Class ;
+                        rdfs:subClassOf kcro:CustomResource .
+
+
+###  https://w3id.org/kcro#ArgoApplication
+kcro:ArgoApplication rdf:type owl:NamedIndividual ,
+                               gufo:Kind .
+
+
+###  https://w3id.org/kcro#ArgoApplicationSet
+kcro:ArgoApplicationSet rdf:type owl:NamedIndividual ,
+                                  gufo:Kind .
 
 
 ###  https://w3id.org/kcro#AutomountTokenEnabled
@@ -290,6 +370,16 @@ kcro:CronJob rdf:type owl:Class ;
              rdfs:subClassOf kcro:WorkloadResource .
 
 
+###  https://w3id.org/kcro#CustomResource
+kcro:CustomResource rdf:type owl:Class ;
+                    rdfs:subClassOf kcro:KubernetesObject .
+
+
+###  https://w3id.org/kcro#CustomResourceDefinition
+kcro:CustomResourceDefinition rdf:type owl:Class ;
+                              rdfs:subClassOf kcro:ExtensionResource .
+
+
 ###  https://w3id.org/kcro#DaemonSet
 kcro:DaemonSet rdf:type owl:Class ;
                rdfs:subClassOf kcro:WorkloadResource .
@@ -324,12 +414,42 @@ kcro:EnvReference rdf:type owl:Class ;
                   rdfs:subClassOf kcro:KubernetesRelation .
 
 
+###  https://w3id.org/kcro#ExtensionResource
+kcro:ExtensionResource rdf:type owl:Class ;
+                       rdfs:subClassOf kcro:KubernetesObject .
+
+
 ###  https://w3id.org/kcro#ExternalNameExposure
 kcro:ExternalNameExposure rdf:type owl:Class ;
                           rdfs:subClassOf kcro:ServiceExposureLevel ;
                           rdfs:label "ExternalName (external alias)"@en ;
                           kcro:corpusCount 21 ;
                           kcro:datasetKey "service.type=ExternalName" .
+
+
+###  https://w3id.org/kcro#FluxKustomization
+kcro:FluxKustomization rdf:type owl:Class ;
+                       rdfs:subClassOf kcro:CustomResource .
+
+
+###  https://w3id.org/kcro#GitRepository
+kcro:GitRepository rdf:type owl:Class ;
+                   rdfs:subClassOf kcro:CustomResource .
+
+
+###  https://w3id.org/kcro#HelmChart
+kcro:HelmChart rdf:type owl:Class ;
+               rdfs:subClassOf kcro:CustomResource .
+
+
+###  https://w3id.org/kcro#HelmRelease
+kcro:HelmRelease rdf:type owl:Class ;
+                 rdfs:subClassOf kcro:CustomResource .
+
+
+###  https://w3id.org/kcro#HelmRepository
+kcro:HelmRepository rdf:type owl:Class ;
+                    rdfs:subClassOf kcro:CustomResource .
 
 
 ###  https://w3id.org/kcro#HostIPCPod
@@ -483,6 +603,11 @@ kcro:NodePortExposure rdf:type owl:Class ;
                       kcro:datasetKey "service.type=NodePort" .
 
 
+###  https://w3id.org/kcro#OCIRepository
+kcro:OCIRepository rdf:type owl:Class ;
+                   rdfs:subClassOf kcro:CustomResource .
+
+
 ###  https://w3id.org/kcro#PermissionResource
 kcro:PermissionResource rdf:type owl:Class ;
                         rdfs:subClassOf kcro:KubernetesObject .
@@ -542,6 +667,11 @@ kcro:ReplicaSet rdf:type owl:Class ;
                 rdfs:subClassOf kcro:WorkloadResource .
 
 
+###  https://w3id.org/kcro#Repository
+kcro:Repository rdf:type owl:Class ;
+                rdfs:subClassOf gufo:Object .
+
+
 ###  https://w3id.org/kcro#Risk
 kcro:Risk rdf:type owl:Class ;
           rdfs:subClassOf gufo:Relator .
@@ -569,6 +699,11 @@ kcro:RunAsNonRootDisabled rdf:type owl:Class ;
                           kcro:corpusCount 18 ;
                           kcro:datasetKey "pod.securityContext.runAsNonRoot=false" ;
                           kcro:groundingNote "Explicit disabling of a protective setting; securityContext family." .
+
+
+###  https://w3id.org/kcro#SchemaConformance
+kcro:SchemaConformance rdf:type owl:Class ;
+                       rdfs:subClassOf kcro:KubernetesRelation .
 
 
 ###  https://w3id.org/kcro#Secret
@@ -609,6 +744,11 @@ kcro:ServiceExposureLevel rdf:type owl:Class ;
 ###  https://w3id.org/kcro#ServiceRouting
 kcro:ServiceRouting rdf:type owl:Class ;
                     rdfs:subClassOf kcro:KubernetesRelation .
+
+
+###  https://w3id.org/kcro#SourceReference
+kcro:SourceReference rdf:type owl:Class ;
+                     rdfs:subClassOf kcro:KubernetesRelation .
 
 
 ###  https://w3id.org/kcro#StatefulSet
@@ -759,6 +899,16 @@ kcro:CronJob rdf:type owl:NamedIndividual ,
                       gufo:Kind .
 
 
+###  https://w3id.org/kcro#CustomResource
+kcro:CustomResource rdf:type owl:NamedIndividual ,
+                              gufo:Category .
+
+
+###  https://w3id.org/kcro#CustomResourceDefinition
+kcro:CustomResourceDefinition rdf:type owl:NamedIndividual ,
+                                       gufo:Kind .
+
+
 ###  https://w3id.org/kcro#DaemonSet
 kcro:DaemonSet rdf:type owl:NamedIndividual ,
                         gufo:Kind .
@@ -777,6 +927,36 @@ kcro:Deployment rdf:type owl:NamedIndividual ,
 ###  https://w3id.org/kcro#EnvReference
 kcro:EnvReference rdf:type owl:NamedIndividual ,
                            gufo:Kind .
+
+
+###  https://w3id.org/kcro#ExtensionResource
+kcro:ExtensionResource rdf:type owl:NamedIndividual ,
+                                gufo:Category .
+
+
+###  https://w3id.org/kcro#FluxKustomization
+kcro:FluxKustomization rdf:type owl:NamedIndividual ,
+                                 gufo:Kind .
+
+
+###  https://w3id.org/kcro#GitRepository
+kcro:GitRepository rdf:type owl:NamedIndividual ,
+                             gufo:Kind .
+
+
+###  https://w3id.org/kcro#HelmChart
+kcro:HelmChart rdf:type owl:NamedIndividual ,
+                         gufo:Kind .
+
+
+###  https://w3id.org/kcro#HelmRelease
+kcro:HelmRelease rdf:type owl:NamedIndividual ,
+                           gufo:Kind .
+
+
+###  https://w3id.org/kcro#HelmRepository
+kcro:HelmRepository rdf:type owl:NamedIndividual ,
+                              gufo:Kind .
 
 
 ###  https://w3id.org/kcro#Haque2022
@@ -855,6 +1035,11 @@ kcro:NetworkResource rdf:type owl:NamedIndividual ,
                               gufo:Category .
 
 
+###  https://w3id.org/kcro#OCIRepository
+kcro:OCIRepository rdf:type owl:NamedIndividual ,
+                             gufo:Kind .
+
+
 ###  https://w3id.org/kcro#PermissionResource
 kcro:PermissionResource rdf:type owl:NamedIndividual ,
                                  gufo:Category .
@@ -876,6 +1061,11 @@ kcro:ReplicaSet rdf:type owl:NamedIndividual ,
                          gufo:Kind .
 
 
+###  https://w3id.org/kcro#Repository
+kcro:Repository rdf:type owl:NamedIndividual ,
+                         gufo:Kind .
+
+
 ###  https://w3id.org/kcro#Risk
 kcro:Risk rdf:type owl:NamedIndividual ,
                    gufo:Kind .
@@ -889,6 +1079,11 @@ kcro:Role rdf:type owl:NamedIndividual ,
 ###  https://w3id.org/kcro#RoleBinding
 kcro:RoleBinding rdf:type owl:NamedIndividual ,
                           gufo:Kind .
+
+
+###  https://w3id.org/kcro#SchemaConformance
+kcro:SchemaConformance rdf:type owl:NamedIndividual ,
+                                gufo:Kind .
 
 
 ###  https://w3id.org/kcro#Secret
@@ -924,6 +1119,11 @@ kcro:ServiceExposureLevel rdf:type owl:NamedIndividual ,
 ###  https://w3id.org/kcro#ServiceRouting
 kcro:ServiceRouting rdf:type owl:NamedIndividual ,
                              gufo:Kind .
+
+
+###  https://w3id.org/kcro#SourceReference
+kcro:SourceReference rdf:type owl:NamedIndividual ,
+                               gufo:Kind .
 
 
 ###  https://w3id.org/kcro#StatefulSet
@@ -1186,6 +1386,20 @@ kcro:ContainerImage rdfs:comment "The software artifact a container runs. The br
 kcro:CronJob rdfs:label "CronJob"@en .
 
 
+kcro:CustomResource rdfs:comment "An instance of a resource type added to the Kubernetes API by a CustomResourceDefinition. A gufo:Category rather than a Kind: it is rigid, but spans hundreds of third-party kinds with different identity principles, so it supplies no identity principle of its own. Deliberately NOT disjoint from the five functional groupings, so a specific custom-resource kind may be refined into one of them later."@en ;
+                    rdfs:label "CustomResource"@en ;
+                    skos:scopeNote "The open-category instantiation target for third-party kinds. Admission criterion: the manifest's apiVersion carries a DNS-style API group that is neither a native Kubernetes group nor a client-side-only group. Deliberately descoped native kinds (PersistentVolumeClaim, PodDisruptionBudget, Namespace) are not custom resources and are not typed here." .
+
+
+kcro:CustomResourceDefinition rdfs:comment "A native Kubernetes object (apiextensions.k8s.io) that admits a new resource type to the API server by declaring its API group, kind and schema. Modelled as an extension resource kind: it is a cluster resource in its own right, identified and RBAC-governed like any other object, whose content happens to be a type declaration."@en ;
+                              rdfs:label "CustomResourceDefinition"@en ;
+                              skos:scopeNote "In scope from v0.5.0. A native kind, so including it does not widen the original scoping decision to third-party APIs." .
+
+
+kcro:ExtensionResource rdfs:comment "Abstract grouping of native Kubernetes kinds that extend the API surface itself instead of carrying workload, data, network, permission or identity semantics. CustomResourceDefinition today; APIService and the admission-webhook configurations are the obvious future members."@en ;
+                       rdfs:label "Extension Resource"@en .
+
+
 kcro:DaemonSet rdfs:label "DaemonSet"@en .
 
 
@@ -1197,6 +1411,28 @@ kcro:Deployment rdfs:label "Deployment"@en .
 
 kcro:EnvReference rdfs:label "Environment Reference"@en ;
                   skos:scopeNote "Pod -> ConfigMap/Secret (envFrom)." .
+
+
+kcro:FluxKustomization rdfs:comment "A Flux Kustomization: a cluster resource instructing the kustomize-controller to build and apply a path from a declared source. Named FluxKustomization because kustomize.config.k8s.io/Kustomization is a client-side build file, never submitted to an API server, and is out of scope."@en ;
+                       rdfs:label "FluxKustomization"@en ;
+                       skos:scopeNote "kustomize.toolkit.fluxcd.io/Kustomization only." .
+
+
+kcro:GitRepository rdfs:comment "A Flux GitRepository: a declared git origin the source-controller fetches artefacts from."@en ;
+                   rdfs:label "GitRepository"@en .
+
+
+kcro:HelmChart rdfs:comment "A Flux HelmChart: a chart artefact produced from a declared source."@en ;
+               rdfs:label "HelmChart"@en ;
+               skos:scopeNote "source.toolkit.fluxcd.io/HelmChart. Keyed on (apiGroup, kind), since kots.io and helm.cattle.io also publish a HelmChart kind." .
+
+
+kcro:HelmRelease rdfs:comment "A Flux HelmRelease: a declaration that a Helm chart should be installed and kept reconciled, naming both the chart and the source it is pulled from."@en ;
+                 rdfs:label "HelmRelease"@en .
+
+
+kcro:HelmRepository rdfs:comment "A Flux HelmRepository: a declared Helm chart repository, HTTP or OCI, that charts are pulled from."@en ;
+                    rdfs:label "HelmRepository"@en .
 
 
 kcro:IdentityAssignment rdfs:label "Identity Assignment"@en ;
@@ -1230,7 +1466,7 @@ kcro:IngressBackend rdfs:label "Ingress Backend"@en ;
 kcro:Job rdfs:label "Job"@en .
 
 
-kcro:KubernetesObject rdfs:comment "Top non-sortal category generalising every Kubernetes resource kind catalogued in the corpus (541 distinct kinds). A Category because it is rigid but spans many kinds with different identity principles."@en ;
+kcro:KubernetesObject rdfs:comment "Top non-sortal category generalising every Kubernetes resource kind. A Category because it is rigid but spans many kinds with different identity principles. The KubeObjects design corpus alone contains 541 distinct kinds; kinds without a dedicated class are instantiated through its subclass kcro:CustomResource (from v0.5.0), so the category is populated and not only declared."@en ;
                       rdfs:label "Kubernetes Object"@en .
 
 
@@ -1253,6 +1489,10 @@ kcro:NetworkPolicyScope rdfs:label "Network Policy Scope"@en ;
 kcro:NetworkResource rdfs:label "Network Resource"@en .
 
 
+kcro:OCIRepository rdfs:comment "A Flux OCIRepository: a declared OCI registry artefact the source-controller pulls."@en ;
+                   rdfs:label "OCIRepository"@en .
+
+
 kcro:PermissionResource rdfs:comment "RBAC rules and their bindings."@en ;
                         rdfs:label "Permission Resource"@en .
 
@@ -1262,6 +1502,10 @@ kcro:Pod rdfs:comment "Smallest deployable unit; the principal bearer of pod-lev
 
 
 kcro:ReplicaSet rdfs:label "ReplicaSet"@en .
+
+
+kcro:Repository rdfs:comment "A source-code repository a manifest was read from: the provenance anchor for every instantiated object. A gufo:Kind supplying its own identity principle (host plus full name). Deliberately not a kcro:KubernetesObject, since a repository is not a cluster resource."@en ;
+                rdfs:label "Repository"@en .
 
 
 kcro:Risk rdfs:comment "A relator mediating an asset-at-risk (a Kubernetes object bearing a vulnerability) and a threat agent (bearing a capability that can exploit it)."@en ;
@@ -1344,6 +1588,7 @@ kcro:WorkloadResource rdfs:comment "Bearers of runtime security configuration."@
 
 [ rdf:type owl:AllDisjointClasses ;
   owl:members ( kcro:DataResource
+                kcro:ExtensionResource
                 kcro:IdentityResource
                 kcro:NetworkResource
                 kcro:PermissionResource
@@ -1358,6 +1603,15 @@ kcro:WorkloadResource rdfs:comment "Bearers of runtime security configuration."@
 #    FAIRification 0.3.1: term definitions (rdfs:comment) for previously label-only terms
 #################################################################
 
+kcro:ArgoApplication rdfs:comment "An Argo CD Application: a declaration that the manifests at a source revision should be reconciled into a destination cluster and namespace."@en ;
+                     rdfs:label "ArgoApplication"@en ;
+                     skos:scopeNote "argoproj.io/Application. Keyed on (apiGroup, kind), since kots.io and pipecd.dev publish different resources under the same kind name." .
+
+
+kcro:ArgoApplicationSet rdfs:comment "An Argo CD ApplicationSet: a generator that templates many Applications from a single declaration."@en ;
+                        rdfs:label "ArgoApplicationSet"@en .
+
+
 kcro:ClusterRole rdfs:comment "A cluster-scoped RBAC role: a named set of permission rules that applies across all namespaces. Modelled as a permission resource kind."@en .
 kcro:ConfigMap rdfs:comment "A Kubernetes object holding non-confidential configuration data as key-value pairs, consumed by pods as environment variables or mounted files. Modelled as a data resource kind."@en .
 kcro:CronJob rdfs:comment "A workload kind that creates Jobs on a repeating schedule. Modelled as a workload-management resource kind."@en .
@@ -1369,9 +1623,19 @@ kcro:Job rdfs:comment "A workload kind that runs one or more pods to completion.
 kcro:NetworkResource rdfs:comment "Abstract grouping of Kubernetes kinds that govern network exposure and connectivity, such as Service, Ingress, and NetworkPolicy."@en .
 kcro:ReplicaSet rdfs:comment "A workload kind that maintains a stable set of replica pods. Usually managed by a Deployment. Modelled as a workload-management resource kind."@en .
 kcro:Role rdfs:comment "A namespace-scoped RBAC role: a named set of permission rules applying within a single namespace. Modelled as a permission resource kind."@en .
+kcro:SchemaConformance rdfs:comment "A relator reifying the conformance of a custom resource to the CustomResourceDefinition that admits its type to the API server. Mediates the custom resource and the CRD. Materialised only where the declaring CRD is present in the same repository, following the mapper's mint-on-resolve convention, so a custom resource whose CRD is installed elsewhere adds no under-mediated relator."@en ;
+                       rdfs:label "SchemaConformance"@en ;
+                       skos:scopeNote "CustomResource -> CustomResourceDefinition, matching the resource's apiVersion group and kind against the CRD's spec.group and spec.names.kind. Reported as crd_linkage_rate rather than folded into the relator resolution rate." .
+
+
 kcro:Secret rdfs:comment "A Kubernetes object holding confidential data such as credentials or tokens, consumed by pods as environment variables or mounted files. Modelled as a data resource kind."@en .
 kcro:Service rdfs:comment "A Kubernetes object that exposes a set of pods as a network service via a stable address and a label selector. Modelled as a network resource kind."@en .
-kcro:ServiceAccount rdfs:comment "An identity that pods assume to authenticate to the Kubernetes API. Modelled as a permission resource kind."@en .
+kcro:ServiceAccount rdfs:comment "An identity that pods assume to authenticate to the Kubernetes API. Modelled as an identity resource kind."@en .
+kcro:SourceReference rdfs:comment "A relator reifying the dependency of a Flux delivery resource on the source it pulls content from. Mediates the referring resource and the referenced source object. Materialised only where that source is declared in the same repository, following the mapper's mint-on-resolve convention, so a reference to a source installed elsewhere adds no under-mediated relator."@en ;
+                     rdfs:label "SourceReference"@en ;
+                     skos:scopeNote "FluxKustomization/HelmRelease -> GitRepository/OCIRepository/HelmRepository/HelmChart, read from spec.sourceRef, spec.chart.spec.sourceRef and spec.chartRef. 1,030 such references in the gitops corpus, 560 resolving in-repo." .
+
+
 kcro:StatefulSet rdfs:comment "A workload kind that manages stateful pods with stable identities and persistent storage. Modelled as a workload-management resource kind."@en .
 kcro:EnvReference rdfs:comment "A relator reifying a pod's consumption of a ConfigMap or Secret as environment variables; encodes containers[].envFrom[].configMapRef / .secretRef. Mediates the pod and the referenced data resource."@en .
 kcro:IdentityAssignment rdfs:comment "A relator reifying the assignment of a ServiceAccount identity to a pod; encodes spec.serviceAccountName. Mediates the pod and the ServiceAccount."@en .
