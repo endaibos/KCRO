@@ -1,0 +1,22 @@
+{
+  "corpus": "gitops-s2",
+  "abox": "ontology/kcro-abox-gitops-s2.ttl",
+  "verdict": "consistent",
+  "removed_for_reasoning": [
+    "http://purl.org/nemo/gufo# http://purl.org/dc/terms/modified 2021-11-01",
+    "http://purl.org/nemo/gufo# http://purl.org/dc/terms/created 2019-11-11",
+    "http://purl.org/nemo/gufo#hasBeginPointInXSDDate http://www.w3.org/2000/01/rdf-schema#range http://www.w3.org/2001/XMLSchema#date",
+    "https://w3id.org/kcro http://purl.org/dc/terms/modified 2026-06-15",
+    "https://w3id.org/kcro http://purl.org/dc/terms/issued 2026-06-10",
+    "http://purl.org/nemo/gufo#hasEndPointInXSDDate http://www.w3.org/2000/01/rdf-schema#range http://www.w3.org/2001/XMLSchema#date"
+  ],
+  "detail": "",
+  "reasoner": "HermiT via owlready2 0.51",
+  "triples_total": 93694,
+  "triples_tbox": 1579,
+  "triples_abox": 92115,
+  "merge_seconds": 1.6,
+  "reasoner_seconds": 66.0,
+  "java_memory_mb": 24000,
+  "timeout_seconds": 1800
+}

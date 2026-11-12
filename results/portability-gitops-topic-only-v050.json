@@ -1,0 +1,248 @@
+{
+  "corpus": "gitops-topic-only-v050",
+  "source": "gitops/corpora/gitops-topic-only.jsonl",
+  "abox": "ontology/kcro-abox-gitops-topic-only-v050.ttl",
+  "rows": 4542,
+  "documents": 7827,
+  "parse_failures": 0,
+  "no_kind": 54,
+  "objects": 7773,
+  "in_scope": 6995,
+  "in_scope_without_name": 127,
+  "unnamed_legacy_kinds": 4,
+  "unnamed_new_classes": 123,
+  "distinct_kinds": 229,
+  "unmapped_kinds_n": 30,
+  "unmapped_objects": 778,
+  "unmapped_kinds": [
+    [
+      "kustomize.config.k8s.io/Kustomization",
+      215
+    ],
+    [
+      "Namespace",
+      133
+    ],
+    [
+      "chainsaw.kyverno.io/Test",
+      107
+    ],
+    [
+      "LabelTransformer",
+      54
+    ],
+    [
+      "PersistentVolumeClaim",
+      40
+    ],
+    [
+      "ResourceQuota",
+      37
+    ],
+    [
+      "admissionregistration.k8s.io/ValidatingWebhookConfiguration",
+      31
+    ],
+    [
+      "autoscaling/HorizontalPodAutoscaler",
+      30
+    ],
+    [
+      "policy/PodDisruptionBudget",
+      28
+    ],
+    [
+      "admissionregistration.k8s.io/MutatingWebhookConfiguration",
+      24
+    ],
+    [
+      "ctrf/CTRFReport",
+      12
+    ],
+    [
+      "kustomize.config.k8s.io/Component",
+      10
+    ],
+    [
+      "kind.x-k8s.io/Cluster",
+      9
+    ],
+    [
+      "policy/PodSecurityPolicy",
+      8
+    ],
+    [
+      "helm/Values",
+      7
+    ],
+    [
+      "scheduling.k8s.io/PriorityClass",
+      5
+    ],
+    [
+      "PersistentVolume",
+      5
+    ],
+    [
+      "apiregistration.k8s.io/APIService",
+      4
+    ],
+    [
+      "networking.k8s.io/IngressClass",
+      3
+    ],
+    [
+      "storage.k8s.io/StorageClass",
+      3
+    ]
+  ],
+  "in_scope_by_class": {
+    "ClusterRole": 425,
+    "ClusterRoleBinding": 238,
+    "ConfigMap": 275,
+    "CronJob": 6,
+    "CustomResource": 2217,
+    "CustomResourceDefinition": 1070,
+    "DaemonSet": 39,
+    "Deployment": 696,
+    "Ingress": 45,
+    "Job": 84,
+    "NetworkPolicy": 113,
+    "Pod": 93,
+    "Role": 101,
+    "RoleBinding": 100,
+    "Secret": 394,
+    "Service": 607,
+    "ServiceAccount": 433,
+    "StatefulSet": 59
+  },
+  "custom_resources": 2217,
+  "crd_in_same_repo": 1156,
+  "crd_in_corpus": 1275,
+  "crd_in_same_repo_rate": 0.5214,
+  "crd_in_corpus_rate": 0.5751,
+  "source_refs_found": 0,
+  "source_refs_resolved": 0,
+  "source_refs_resolved_rate": null,
+  "coverage_pct": 89.99,
+  "triples": 40609,
+  "class_census": {
+    "AbsentIngressTLS": 22,
+    "AbsentResourceLimit": 250,
+    "AbsentRunAsNonRoot": 325,
+    "AddedLinuxCapabilities": 14,
+    "AutomountTokenEnabled": 349,
+    "ClusterAdminBinding": 9,
+    "ClusterIPExposure": 243,
+    "ClusterRole": 271,
+    "ClusterRoleBinding": 123,
+    "ConfigMap": 140,
+    "Container": 335,
+    "ContainerImage": 405,
+    "CronJob": 6,
+    "CustomResource": 1462,
+    "CustomResourceDefinition": 412,
+    "DaemonSet": 28,
+    "DefaultServiceAccount": 258,
+    "Deployment": 244,
+    "EnvReference": 2,
+    "ExternalNameExposure": 1,
+    "HostNetworkPod": 4,
+    "HostPIDPod": 2,
+    "IdentityAssignment": 114,
+    "ImageReference": 553,
+    "ImageTagLatest": 34,
+    "ImageTagMissing": 48,
+    "Ingress": 25,
+    "IngressBackend": 21,
+    "Job": 24,
+    "LoadBalancerExposure": 13,
+    "NetworkPolicy": 19,
+    "NetworkPolicyScope": 9,
+    "NodePortExposure": 52,
+    "Pod": 357,
+    "PrivilegeEscalationAllowed": 4,
+    "PrivilegedContainer": 8,
+    "Repository": 27,
+    "Role": 75,
+    "RoleBinding": 73,
+    "RunAsNonRootDisabled": 5,
+    "SchemaConformance": 905,
+    "Secret": 139,
+    "Service": 303,
+    "ServiceAccount": 157,
+    "ServiceRouting": 224,
+    "StatefulSet": 27,
+    "VolumeMount": 99,
+    "WildcardAPIGroups": 33,
+    "WildcardResources": 141,
+    "WildcardVerbs": 76,
+    "WorkloadManagement": 329
+  },
+  "empty_classes": [
+    "ArgoApplication",
+    "ArgoApplicationSet",
+    "ContainerRunAsRoot",
+    "DataResource",
+    "ExtensionResource",
+    "FluxKustomization",
+    "GitRepository",
+    "HelmChart",
+    "HelmRelease",
+    "HelmRepository",
+    "HostIPCPod",
+    "IdentityResource",
+    "ImageTagPolicy",
+    "InformationObject",
+    "KubernetesObject",
+    "KubernetesRelation",
+    "LossEvent",
+    "NetworkResource",
+    "OCIRepository",
+    "PermissionResource",
+    "PodRunAsRoot",
+    "ReplicaSet",
+    "Risk",
+    "SecurityDisposition",
+    "SecurityQuality",
+    "ServiceExposureLevel",
+    "SourceReference",
+    "ThreatAgent",
+    "ThreatCapability",
+    "ThreatEvent",
+    "ThreatIntelDescriptor",
+    "Vulnerability",
+    "VulnerabilityByCommission",
+    "VulnerabilityByOmission",
+    "WorkloadResource"
+  ],
+  "open_category": 1462,
+  "open_category_classes": {
+    "KubernetesObject": 0,
+    "CustomResource": 1462
+  },
+  "relators_total": 1547,
+  "relators_under_mediated": 56,
+  "resolution_rate": 0.9638,
+  "relators_by_class": {
+    "ClusterRoleBinding": 123,
+    "EnvReference": 2,
+    "IdentityAssignment": 114,
+    "ImageReference": 553,
+    "IngressBackend": 21,
+    "NetworkPolicyScope": 9,
+    "RoleBinding": 73,
+    "SchemaConformance": 905,
+    "ServiceRouting": 224,
+    "VolumeMount": 99,
+    "WorkloadManagement": 329
+  },
+  "new_relators": {
+    "SourceReference": 0,
+    "SchemaConformance": 905
+  },
+  "under_mediated_by_class": {
+    "ClusterRoleBinding": 33,
+    "RoleBinding": 23
+  }
+}

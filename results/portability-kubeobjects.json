@@ -1,0 +1,178 @@
+{
+  "corpus": "kubeobjects",
+  "source": "data/k8s_dataset",
+  "abox": "ontology/kcro-abox.ttl",
+  "rows": 75390,
+  "documents": 75390,
+  "parse_failures": 0,
+  "no_kind": 50,
+  "objects": 75340,
+  "in_scope": 60774,
+  "distinct_kinds": 541,
+  "unmapped_kinds_n": 524,
+  "unmapped_objects": 14566,
+  "unmapped_kinds": [
+    [
+      "PrometheusRule",
+      3774
+    ],
+    [
+      "ServiceMonitor",
+      1796
+    ],
+    [
+      "CustomResourceDefinition",
+      1244
+    ],
+    [
+      "PersistentVolumeClaim",
+      1031
+    ],
+    [
+      "PodDisruptionBudget",
+      756
+    ],
+    [
+      "ValidatingWebhookConfiguration",
+      375
+    ],
+    [
+      "Namespace",
+      300
+    ],
+    [
+      "HorizontalPodAutoscaler",
+      291
+    ],
+    [
+      "MutatingWebhookConfiguration",
+      283
+    ],
+    [
+      "PodSecurityPolicy",
+      240
+    ],
+    [
+      "DeviceServer",
+      208
+    ],
+    [
+      "Certificate",
+      178
+    ],
+    [
+      "PersistentVolume",
+      172
+    ],
+    [
+      "Application",
+      152
+    ],
+    [
+      "StorageClass",
+      131
+    ],
+    [
+      "Prometheus",
+      129
+    ],
+    [
+      "Issuer",
+      129
+    ],
+    [
+      "Alertmanager",
+      122
+    ],
+    [
+      "Menu",
+      78
+    ],
+    [
+      "Kustomization",
+      73
+    ]
+  ],
+  "coverage_pct": 80.67,
+  "triples": 537947,
+  "class_census": {
+    "AbsentIngressTLS": 592,
+    "AbsentResourceLimit": 10726,
+    "AbsentRunAsNonRoot": 11890,
+    "AddedLinuxCapabilities": 334,
+    "AutomountTokenEnabled": 12282,
+    "ClusterAdminBinding": 96,
+    "ClusterIPExposure": 10920,
+    "ClusterRole": 3876,
+    "ClusterRoleBinding": 3448,
+    "ConfigMap": 9008,
+    "Container": 14904,
+    "ContainerImage": 8050,
+    "ContainerRunAsRoot": 98,
+    "CronJob": 224,
+    "DaemonSet": 605,
+    "DefaultServiceAccount": 7485,
+    "Deployment": 9068,
+    "EnvReference": 1311,
+    "ExternalNameExposure": 21,
+    "HostIPCPod": 8,
+    "HostNetworkPod": 466,
+    "HostPIDPod": 247,
+    "IdentityAssignment": 6196,
+    "ImageReference": 15286,
+    "ImageTagLatest": 1416,
+    "ImageTagMissing": 2271,
+    "Ingress": 935,
+    "IngressBackend": 974,
+    "Job": 1101,
+    "LoadBalancerExposure": 559,
+    "NetworkPolicy": 691,
+    "NetworkPolicyScope": 679,
+    "NodePortExposure": 577,
+    "Pod": 13811,
+    "PodRunAsRoot": 207,
+    "PrivilegeEscalationAllowed": 96,
+    "PrivilegedContainer": 284,
+    "ReplicaSet": 4,
+    "Role": 1854,
+    "RoleBinding": 1959,
+    "RunAsNonRootDisabled": 18,
+    "Secret": 3048,
+    "Service": 12064,
+    "ServiceAccount": 5707,
+    "ServiceRouting": 12394,
+    "StatefulSet": 1689,
+    "VolumeMount": 6220,
+    "WildcardAPIGroups": 277,
+    "WildcardResources": 544,
+    "WildcardVerbs": 1604,
+    "WorkloadManagement": 12691
+  },
+  "empty_classes": [
+    "DataResource",
+    "IdentityResource",
+    "ImageTagPolicy",
+    "InformationObject",
+    "KubernetesObject",
+    "KubernetesRelation",
+    "LossEvent",
+    "NetworkResource",
+    "PermissionResource",
+    "Risk",
+    "SecurityDisposition",
+    "SecurityQuality",
+    "ServiceExposureLevel",
+    "ThreatAgent",
+    "ThreatCapability",
+    "ThreatEvent",
+    "ThreatIntelDescriptor",
+    "Vulnerability",
+    "VulnerabilityByCommission",
+    "VulnerabilityByOmission",
+    "WorkloadResource"
+  ],
+  "open_category": 0,
+  "relators_total": 61158,
+  "relators_under_mediated": 599,
+  "resolution_rate": 0.9902
+}

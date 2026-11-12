@@ -1,0 +1,178 @@
+{
+  "corpus": "rahman",
+  "source": "rahman/corpora/rahman.jsonl",
+  "abox": "ontology/kcro-abox-rahman.ttl",
+  "rows": 1654,
+  "documents": 2980,
+  "parse_failures": 16,
+  "no_kind": 283,
+  "objects": 2697,
+  "in_scope": 1863,
+  "distinct_kinds": 112,
+  "unmapped_kinds_n": 95,
+  "unmapped_objects": 834,
+  "unmapped_kinds": [
+    [
+      "PersistentVolumeClaim",
+      83
+    ],
+    [
+      "PersistentVolume",
+      71
+    ],
+    [
+      "AmbassadorMapping",
+      68
+    ],
+    [
+      "Namespace",
+      57
+    ],
+    [
+      "PodDisruptionBudget",
+      57
+    ],
+    [
+      "Application",
+      38
+    ],
+    [
+      "Mapping",
+      30
+    ],
+    [
+      "MongoDBVersion",
+      28
+    ],
+    [
+      "Config",
+      26
+    ],
+    [
+      "HTTPProxy",
+      23
+    ],
+    [
+      "PostgresVersion",
+      22
+    ],
+    [
+      "HorizontalPodAutoscaler",
+      17
+    ],
+    [
+      "ElasticsearchVersion",
+      16
+    ],
+    [
+      "PodSecurityPolicy",
+      15
+    ],
+    [
+      "Kustomization",
+      14
+    ],
+    [
+      "ServiceMonitor",
+      14
+    ],
+    [
+      "MySQLVersion",
+      13
+    ],
+    [
+      "RedisVersion",
+      13
+    ],
+    [
+      "VarnishConfig",
+      13
+    ],
+    [
+      "helm-release",
+      11
+    ]
+  ],
+  "coverage_pct": 69.08,
+  "triples": 16623,
+  "class_census": {
+    "AbsentIngressTLS": 38,
+    "AbsentResourceLimit": 366,
+    "AbsentRunAsNonRoot": 430,
+    "AddedLinuxCapabilities": 8,
+    "AutomountTokenEnabled": 438,
+    "ClusterAdminBinding": 7,
+    "ClusterIPExposure": 264,
+    "ClusterRole": 69,
+    "ClusterRoleBinding": 54,
+    "ConfigMap": 120,
+    "Container": 456,
+    "ContainerImage": 395,
+    "ContainerRunAsRoot": 3,
+    "CronJob": 10,
+    "DaemonSet": 10,
+    "DefaultServiceAccount": 358,
+    "Deployment": 351,
+    "EnvReference": 32,
+    "ExternalNameExposure": 2,
+    "HostNetworkPod": 5,
+    "HostPIDPod": 2,
+    "IdentityAssignment": 79,
+    "ImageReference": 535,
+    "ImageTagLatest": 82,
+    "ImageTagMissing": 150,
+    "Ingress": 41,
+    "IngressBackend": 4,
+    "Job": 5,
+    "LoadBalancerExposure": 39,
+    "NetworkPolicy": 1,
+    "NodePortExposure": 84,
+    "Pod": 438,
+    "PrivilegeEscalationAllowed": 3,
+    "PrivilegedContainer": 16,
+    "ReplicaSet": 1,
+    "Role": 34,
+    "RoleBinding": 36,
+    "Secret": 55,
+    "Service": 376,
+    "ServiceAccount": 87,
+    "ServiceRouting": 384,
+    "StatefulSet": 31,
+    "VolumeMount": 109,
+    "WildcardAPIGroups": 6,
+    "WildcardResources": 20,
+    "WildcardVerbs": 39,
+    "WorkloadManagement": 408
+  },
+  "empty_classes": [
+    "DataResource",
+    "HostIPCPod",
+    "IdentityResource",
+    "ImageTagPolicy",
+    "InformationObject",
+    "KubernetesObject",
+    "KubernetesRelation",
+    "LossEvent",
+    "NetworkPolicyScope",
+    "NetworkResource",
+    "PermissionResource",
+    "PodRunAsRoot",
+    "Risk",
+    "RunAsNonRootDisabled",
+    "SecurityDisposition",
+    "SecurityQuality",
+    "ServiceExposureLevel",
+    "ThreatAgent",
+    "ThreatCapability",
+    "ThreatEvent",
+    "ThreatIntelDescriptor",
+    "Vulnerability",
+    "VulnerabilityByCommission",
+    "VulnerabilityByOmission",
+    "WorkloadResource"
+  ],
+  "open_category": 0,
+  "relators_total": 1641,
+  "relators_under_mediated": 22,
+  "resolution_rate": 0.9866
+}

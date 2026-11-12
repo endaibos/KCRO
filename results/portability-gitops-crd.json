@@ -1,0 +1,178 @@
+{
+  "corpus": "gitops-crd",
+  "source": "gitops/corpora/gitops-crd.jsonl",
+  "abox": "ontology/kcro-abox-gitops-crd.ttl",
+  "rows": 6521,
+  "documents": 8523,
+  "parse_failures": 0,
+  "no_kind": 12,
+  "objects": 8511,
+  "in_scope": 2524,
+  "distinct_kinds": 349,
+  "unmapped_kinds_n": 332,
+  "unmapped_objects": 5987,
+  "unmapped_kinds": [
+    [
+      "Kustomization",
+      1706
+    ],
+    [
+      "HelmRelease",
+      531
+    ],
+    [
+      "CustomResourceDefinition",
+      452
+    ],
+    [
+      "OCIRepository",
+      299
+    ],
+    [
+      "Namespace",
+      290
+    ],
+    [
+      "GrafanaDashboard",
+      266
+    ],
+    [
+      "ExternalSecret",
+      214
+    ],
+    [
+      "Application",
+      133
+    ],
+    [
+      "HelmRepository",
+      112
+    ],
+    [
+      "HTTPRoute",
+      112
+    ],
+    [
+      "ApplicationSet",
+      109
+    ],
+    [
+      "PersistentVolumeClaim",
+      106
+    ],
+    [
+      "Component",
+      101
+    ],
+    [
+      "PrometheusRule",
+      59
+    ],
+    [
+      "Cluster",
+      44
+    ],
+    [
+      "ServiceMonitor",
+      40
+    ],
+    [
+      "Certificate",
+      40
+    ],
+    [
+      "ClusterServiceVersion",
+      38
+    ],
+    [
+      "SealedSecret",
+      33
+    ],
+    [
+      "AppProject",
+      32
+    ]
+  ],
+  "coverage_pct": 29.66,
+  "triples": 15532,
+  "class_census": {
+    "AbsentIngressTLS": 14,
+    "AbsentResourceLimit": 247,
+    "AbsentRunAsNonRoot": 368,
+    "AddedLinuxCapabilities": 20,
+    "AutomountTokenEnabled": 412,
+    "ClusterAdminBinding": 8,
+    "ClusterIPExposure": 251,
+    "ClusterRole": 220,
+    "ClusterRoleBinding": 97,
+    "ConfigMap": 207,
+    "Container": 445,
+    "ContainerImage": 294,
+    "ContainerRunAsRoot": 4,
+    "CronJob": 12,
+    "DaemonSet": 19,
+    "DefaultServiceAccount": 347,
+    "Deployment": 269,
+    "EnvReference": 14,
+    "ExternalNameExposure": 5,
+    "HostNetworkPod": 10,
+    "IdentityAssignment": 104,
+    "ImageReference": 456,
+    "ImageTagLatest": 69,
+    "ImageTagMissing": 55,
+    "Ingress": 43,
+    "IngressBackend": 28,
+    "Job": 53,
+    "LoadBalancerExposure": 25,
+    "NetworkPolicy": 63,
+    "NetworkPolicyScope": 24,
+    "NodePortExposure": 17,
+    "Pod": 428,
+    "PodRunAsRoot": 2,
+    "PrivilegeEscalationAllowed": 1,
+    "PrivilegedContainer": 5,
+    "ReplicaSet": 4,
+    "Role": 61,
+    "RoleBinding": 65,
+    "Secret": 135,
+    "Service": 296,
+    "ServiceAccount": 118,
+    "ServiceRouting": 255,
+    "StatefulSet": 21,
+    "VolumeMount": 86,
+    "WildcardAPIGroups": 11,
+    "WildcardResources": 29,
+    "WildcardVerbs": 70,
+    "WorkloadManagement": 378
+  },
+  "empty_classes": [
+    "DataResource",
+    "HostIPCPod",
+    "HostPIDPod",
+    "IdentityResource",
+    "ImageTagPolicy",
+    "InformationObject",
+    "KubernetesObject",
+    "KubernetesRelation",
+    "LossEvent",
+    "NetworkResource",
+    "PermissionResource",
+    "Risk",
+    "RunAsNonRootDisabled",
+    "SecurityDisposition",
+    "SecurityQuality",
+    "ServiceExposureLevel",
+    "ThreatAgent",
+    "ThreatCapability",
+    "ThreatEvent",
+    "ThreatIntelDescriptor",
+    "Vulnerability",
+    "VulnerabilityByCommission",
+    "VulnerabilityByOmission",
+    "WorkloadResource"
+  ],
+  "open_category": 0,
+  "relators_total": 1507,
+  "relators_under_mediated": 52,
+  "resolution_rate": 0.9655
+}
