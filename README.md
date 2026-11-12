@@ -26,6 +26,16 @@ An experimental **v0.4.0** layer — instance-level provenance (`prov:wasDerived
 lives on the **`v0.4.0-provenance`** branch. It is **out of scope for the thesis**
 and kept only as a reference.
 
+**v0.5.0-draft** (branch `corpus-pipeline`, unreleased) extends the ontology to
+Kubernetes custom resources and validates it on three further corpora. It adds
+`CustomResourceDefinition`, eight Flux / Argo CD delivery kinds, an open
+`CustomResource` category and two relators (86 classes in total), and declares the
+provenance terms of v0.4.0. Coverage per corpus and stage, relator resolution per
+class and the HermiT verdicts are in
+[`results/portability-table-v050.md`](results/portability-table-v050.md); the full
+record of changes is [`CHANGELOG-CORPORA.md`](CHANGELOG-CORPORA.md). The v0.3.0
+ABox `ontology/kcro-abox.ttl` is left untouched.
+
 - 🌐 Persistent ontology IRI: **<https://w3id.org/kcro>** (resolves to this repo's `main`)
 - 📦 Code & artefacts: **<https://github.com/endaibos/KCRO>**
 - 🧱 Built on: **KubeObjects** — <https://github.com/TheGrella/KubeObjects>
@@ -39,14 +49,15 @@ This repository adds five things on top of the KubeObjects corpus:
 
 | Artefact | File(s) | What it is |
 |---|---|---|
-| **KCRO ontology** | [`kcro.ttl`](ontology/kcro.ttl) | The OWL 2 DL TBox — **72 classes** covering Kubernetes resources, security aspects, and inter-resource relators, grounded in [gUFO](http://purl.org/nemo/gufo). v0.3.0 (FAIRified). |
-| **Knowledge graph** | [`kcro-abox.ttl`](ontology/kcro-abox.ttl) | The instantiated ABox: **537,947 triples** mapped from the corpus. |
+| **KCRO ontology** | [`kcro.ttl`](ontology/kcro.ttl) | The OWL 2 DL TBox — **72 classes** covering Kubernetes resources, security aspects, and inter-resource relators, grounded in [gUFO](http://purl.org/nemo/gufo). Thesis: v0.3.0; current file: v0.4.0-draft (adds the provenance terms). |
+| **Knowledge graph** | [`kcro-abox.ttl`](ontology/kcro-abox.ttl) | The instantiated ABox. **Thesis-evaluated v0.3.0: 537,947 triples** (see the `v0.3.0` tag). Current v0.4.0 (with provenance): 680,035 triples / 213,708 individuals. |
 | **Mapping pipeline** | [`instantiate_kcro.py`](src/instantiate_kcro.py) | Deterministic corpus → KG mapper (gUFO `inheresIn`/`mediates` patterns, two-pass reference resolution, provenance). See [MAPPER.md](MAPPER.md). |
 | **Analysis & query tooling** | [`survey.py`](src/survey.py), [`cq_runner.py`](src/cq_runner.py), [`srq3.py`](src/srq3.py) | `survey.py` = the SRQ1 security-field analysis; `cq_runner.py` = the 12 competency-question SPARQL queries, run as fast indexed joins. |
 | **FAIR packaging** | [`kcro.ttl`](ontology/kcro.ttl), [`metadata.py`](corpus/metadata.py) | Persistent `w3id` IRI, CC BY 4.0 licence, Dublin Core / SKOS metadata in the ontology header. |
 
-An interactive **KG explorer** (local SPARQL browser + GPU rendering of the full
-graph) is available on the **`v0.4.0-provenance`** branch — outside the thesis scope.
+Optional: an interactive **KG explorer** ([`kcro_server.py`](src/kcro_server.py) +
+the `*_visualizer.html` views) — a local SPARQL-backed browser and a GPU
+rendering of the full 210k-node graph.
 
 ---
 
@@ -59,8 +70,9 @@ graph) is available on the **`v0.4.0-provenance`** branch — outside the thesis
 | **Relationships** | Not modelled | Resolved relators (`ServiceRouting`, `IdentityAssignment`, …) |
 | **Queries** | Pandas / ad-hoc | SPARQL competency questions over a reasoned graph |
 
-Coverage of the mapping: **80.7 %** of corpus objects (60,774 / 75,340) fall into
-an in-scope KCRO class; the rest are the open long tail (CRDs, etc.).
+Coverage of the mapping in v0.3.0: **80.7 %** of corpus objects (60,774 / 75,340)
+fall into an in-scope KCRO class; the rest are the open long tail (CRDs, etc.).
+With the v0.5.0-draft extension the same corpus reaches 94.6 %.
 
 ---
 
@@ -83,6 +95,9 @@ python src/cq_runner.py --cqs
 
 #   ...or the one-shot full report (coverage, KG size, count diff, CQs):
 python src/srq3.py --cqs
+
+# Explorer (optional): serves web/ + SPARQL over the ABox at http://localhost:8000
+python src/kcro_server.py
 ```
 
 `instantiate_kcro.py` is deterministic (content-addressed IRIs), so a re-run

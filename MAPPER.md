@@ -147,9 +147,21 @@ def load_yaml_dir(path):
 ## 6. How to add a mapping rule
 
 ### A new object kind
-Add it to `KIND_CLASS` (`{ "<k8s kind>": "<KCRO class>" }`), and to
-`WORKLOAD_KINDS` if it carries a Pod template. Make sure the KCRO class exists in
-the TBox (`kcro.ttl`).
+`kcro_class_for(kind, doc)` is the single place that decides whether an object is
+modelled and as which class. It consults, in order:
+
+1. `GROUP_KIND_CLASS` (`{ ("<api group>", "<kind>"): "<KCRO class>" }`). **Add new
+   kinds here.** Keying on the API group keeps homonyms apart: `Application` is used
+   by argoproj.io, kots.io and pipecd.dev for three different resources.
+2. `KIND_CLASS`, the 17 kinds of v0.3.0, guarded by `EXPECTED_GROUPS` so that for
+   example `serving.knative.dev/Service` is not typed as a native Service. Leave this
+   table alone: the IRIs of the v0.3.0 ABox depend on it.
+3. The open category: a third-party API group that is neither in `NATIVE_GROUPS` nor
+   in `NON_CLUSTER_GROUPS` becomes a `kcro:CustomResource`.
+
+Add the kind to `WORKLOAD_KINDS` if it carries a Pod template, and make sure the
+KCRO class exists in the TBox (`kcro.ttl`), which needs three edits: the Classes
+block, the Individuals block (gUFO stereotype) and the Annotations block.
 
 ### A new vulnerability aspect
 Inside the relevant `_*` method, evaluate the manifest field and mint:
@@ -180,7 +192,10 @@ Then declare the class in the TBox and add it to `ANALYSIS_KEYS` in `srq3.py`.
        if tgt: self.relator("MyRelation", subj, tgt)
    ```
 3. Add `MyRelation` to the TBox (subclass of `kcro:KubernetesRelation`) and to the
-   `relator_classes` set in `under_mediated()` so it's audited.
+   module-level `RELATOR_CLASSES` tuple so `under_mediated()` and
+   `portability_report.py` audit it. Keep the mint-on-resolve shape above: a relator
+   that is only created when its target is found can never be under-mediated, so
+   report its resolution per class and never only inside the aggregate rate.
 
 ---
 
