@@ -122,7 +122,8 @@ def main():
     total = len(rows)
     # coverage = the share of corpus objects KCRO actually models; unmapped kinds
     # (CRDs, PodSecurityPolicy, …) are the open long tail we deliberately skip.
-    mapped = sum(1 for _, kind, *_ in rows if kind in ik.KIND_CLASS)
+    mapped = sum(1 for _, kind, _ns, _name, doc in rows
+                 if ik.kcro_class_for(kind, doc) is not None)
     coverage = 100.0 * mapped / total if total else 0.0
     print(f"corpus objects: {total:,} | in-scope (mapped): {mapped:,} | coverage {coverage:.1f}%")
 

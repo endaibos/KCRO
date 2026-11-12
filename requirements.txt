@@ -18,3 +18,4 @@ urllib3==2.5.0
 rdflib==7.6.0        # build/query the knowledge graph
 datasets==4.8.5      # load the KubeObjects Arrow corpus
 graphviz==0.21       # render figures (needs the system 'dot' binary: brew install graphviz)
+owlready2==0.51      # HermiT consistency checks (needs a Java runtime)
