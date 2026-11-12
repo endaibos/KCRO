@@ -1,0 +1,371 @@
+{
+  "corpus": "gitops",
+  "stages": {
+    "discover": {
+      "ran_at_utc": "2026-09-27T16:18:54Z",
+      "endpoint": "GET https://api.github.com/search/repositories (via gh api)",
+      "queries": [
+        "topic:gitops fork:false archived:false stars:>=10",
+        "topic:fluxcd fork:false archived:false stars:>=5",
+        "topic:flux-cd fork:false archived:false stars:>=5",
+        "topic:argocd fork:false archived:false stars:>=5",
+        "topic:argo-cd fork:false archived:false stars:>=5"
+      ],
+      "hits_per_query": {
+        "topic:gitops fork:false archived:false stars:>=10": 612,
+        "topic:fluxcd fork:false archived:false stars:>=5": 148,
+        "topic:flux-cd fork:false archived:false stars:>=5": 1,
+        "topic:argocd fork:false archived:false stars:>=5": 391,
+        "topic:argo-cd fork:false archived:false stars:>=5": 36
+      },
+      "sort": "stars desc",
+      "candidates_unique": 970,
+      "gh_version": "gh version 2.93.0 (2026-05-27)",
+      "note": "fork:false and archived:false are part of each query, not a later filter"
+    },
+    "clone": {
+      "ran_at_utc": "2026-09-27T16:29:05Z",
+      "method": "GitHub tarball API at a resolved commit SHA",
+      "method_note": "tarball fallback used because git is unusable in this environment; the SHA is resolved via GET /repos/{repo}/commits/{branch} and the tarball is fetched at that SHA, so the tree is reproducible",
+      "yaml_only": true,
+      "target": 100,
+      "cloned": 100,
+      "skipped_too_big": {
+        "threshold_mb": 300,
+        "repos": [
+          "meshery/meshery",
+          "fleetdm/fleet",
+          "devtron-labs/devtron",
+          "kubeshop/monokle",
+          "kubeshop/testkube",
+          "weaveworks/weave-gitops",
+          "shortlink-org/shortlink"
+        ]
+      },
+      "clone_failures": []
+    },
+    "build": {
+      "ran_at_utc": "2026-09-27T16:31:01Z",
+      "admission_rule": {
+        "min_manifests": 10,
+        "manifest_definition": "YAML document with both apiVersion and kind",
+        "gitops_evidence": "a GitOps topic ['argo', 'argo-cd', 'argocd', 'flux', 'flux-cd', 'fluxcd', 'gitops'] OR a manifest whose kind is in ['Application', 'ApplicationSet', 'GitRepository', 'HelmRelease', 'Kustomization'] under ['helm.toolkit.fluxcd.io', 'kustomize.toolkit.fluxcd.io', 'source.toolkit.fluxcd.io', 'argoproj.io']",
+        "skipped_dirs": [
+          ".git",
+          ".terraform",
+          "node_modules",
+          "test-data",
+          "testdata",
+          "vendor"
+        ],
+        "unparseable_yaml": "skipped silently (Helm templates are not plain YAML)"
+      },
+      "repos_admitted": 57,
+      "repos_rejected": [
+        {
+          "full_name": "openfaas/faas",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "bytebase/bytebase",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "iam-veeramalla/Jenkins-Zero-To-Hero",
+          "manifests": 6,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "khuedoan/homelab",
+          "manifests": 6,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "bitnami/sealed-secrets",
+          "manifests": 4,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "pacifio/atlas",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "flipt-io/flipt",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "jenkins-x/jx",
+          "manifests": 5,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "onedr0p/cluster-template",
+          "manifests": 2,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "bregman-arie/sre-checklist",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "akuity/awesome-argo",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "konstructio/kubefirst",
+          "manifests": 1,
+          "gitops_crds": 1,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "jkroepke/helm-secrets",
+          "manifests": 3,
+          "gitops_crds": 1,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "kimdre/doco-cd",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "EtienneLescot/n8n-as-code",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "nklmilojevic/sofka",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "pluralsh/plural",
+          "manifests": 5,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "minamijoyo/tfmigrate",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "open-gitops/project",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "pgplex/pgschema",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "nlewo/comin",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "updatecli/updatecli",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "zentralopensource/zentral",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "techiescamp/devops-tools",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "loft-sh/loft",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "featurevisor/featurevisor",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "flux-subsystem-argo/flamingo",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "kbst/terraform-kubestack",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "ricoberger/vault-secrets-operator",
+          "manifests": 2,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "nubenetes/awesome-kubernetes",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "stevius10/Proxmox-GitOps",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "argoproj-labs/mcp-for-argocd",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "zimmertr/TJs-Kubernetes-Service",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "Kong/deck",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "pieterlange/kube-backup",
+          "manifests": 4,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "moabukar/Kubernetes-and-Cloud-Native-Associate-KCNA",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "hybridops-tech/hybridops-core",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "open-gitops/documents",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "kafka-ops/julie",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "miekg/gitopper",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "shalb/cluster.dev",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "Azure/AzOps",
+          "manifests": 0,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        },
+        {
+          "full_name": "ClouGence/open-cdm",
+          "manifests": 2,
+          "gitops_crds": 0,
+          "has_topic": true,
+          "reason": "below min-manifests"
+        }
+      ],
+      "manifest_rows_written": 11063,
+      "out": "corpora/gitops.jsonl"
+    }
+  }
+}

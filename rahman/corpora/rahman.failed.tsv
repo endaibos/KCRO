@@ -1,0 +1,54 @@
+https://raw.githubusercontent.com/kamdibus/RSO/10a8cd5c91b5163dc8ab657f913cfd74fd4c5862/kubernetes/consumerService/consumer-deployment.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/foundery-rmb/kubernetes-service-discovery/35912588dfcdc259e1d5bed1e09f01f716336fb3/ng-ui-example/infrastructure/ui-deployment.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/foundery-rmb/kubernetes-service-discovery/35912588dfcdc259e1d5bed1e09f01f716336fb3/ng-ui-example/infrastructure/ui-nginx-configmap.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/foundery-rmb/kubernetes-service-discovery/35912588dfcdc259e1d5bed1e09f01f716336fb3/ng-ui-example/infrastructure/ui-nginx-log-rotation-configmap.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/foundery-rmb/kubernetes-service-discovery/35912588dfcdc259e1d5bed1e09f01f716336fb3/ng-ui-example/infrastructure/ui-service.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/foundery-rmb/kubernetes-service-discovery/4abfd8df525abe355bc8a090a0a7dcad9500961f/supporting_scripts/service-discovery-client-clusterrole.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/foundery-rmb/kubernetes-service-discovery/525ab9ef523db0d265573372fb9664cf5528d85e/supporting_scripts/namespace.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/kamdibus/RSO/536ace71aab4bb8db0e3e8ba6154b085791c9212/kubernetes/testDeploy/testDeploy-deployment.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/kamdibus/RSO/536ace71aab4bb8db0e3e8ba6154b085791c9212/kubernetes/testDeploy/testDeploy-lb.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/kamdibus/RSO/839e0e224946f2d81d9bec9ef8cabaaf989ad878/kubernetes/invoice/invoice-deployment.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/kamdibus/RSO/839e0e224946f2d81d9bec9ef8cabaaf989ad878/kubernetes/invoice/invoice-lb.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/kamdibus/RSO/8fdc76487cc5747f7017501402b7a93d57465d48/kubernetes/frontend/frontend.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/kamdibus/RSO/8fdc76487cc5747f7017501402b7a93d57465d48/kubernetes/http-gateway.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/kamdibus/RSO/8fdc76487cc5747f7017501402b7a93d57465d48/kubernetes/payment/payment-deployment.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/kamdibus/RSO/8fdc76487cc5747f7017501402b7a93d57465d48/kubernetes/payment/payment-lb.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/kamdibus/RSO/8fdc76487cc5747f7017501402b7a93d57465d48/kubernetes/virtualservice-external.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/kamdibus/RSO/97cdfe109b08a512c2df04c8b3b51f0483114327/kubernetes/security/auth-policy.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/foundery-rmb/kubernetes-service-discovery/b05cd65ab05abb46e965357c627798313c9f29f9/api-gateway/infrastructure/api-gateway-db-deployment.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/foundery-rmb/kubernetes-service-discovery/b05cd65ab05abb46e965357c627798313c9f29f9/api-gateway/infrastructure/api-gateway-db-service.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/foundery-rmb/kubernetes-service-discovery/b05cd65ab05abb46e965357c627798313c9f29f9/api-gateway/infrastructure/api-gateway-deployment.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/foundery-rmb/kubernetes-service-discovery/b05cd65ab05abb46e965357c627798313c9f29f9/api-gateway/infrastructure/api-gateway-ingress.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/foundery-rmb/kubernetes-service-discovery/b05cd65ab05abb46e965357c627798313c9f29f9/api-gateway/infrastructure/api-gateway-pg-pv-claim.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/foundery-rmb/kubernetes-service-discovery/b05cd65ab05abb46e965357c627798313c9f29f9/api-gateway/infrastructure/api-gateway-service.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/foundery-rmb/kubernetes-service-discovery/b05cd65ab05abb46e965357c627798313c9f29f9/microservice/infrastructure/microservice-app-deployment.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/foundery-rmb/kubernetes-service-discovery/b05cd65ab05abb46e965357c627798313c9f29f9/microservice/infrastructure/microservice-db-deployment.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/foundery-rmb/kubernetes-service-discovery/b05cd65ab05abb46e965357c627798313c9f29f9/microservice/infrastructure/microservice-pg-pv-claim.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/foundery-rmb/kubernetes-service-discovery/b05cd65ab05abb46e965357c627798313c9f29f9/microservice/infrastructure/microservice-service.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/foundery-rmb/kubernetes-service-discovery/b05cd65ab05abb46e965357c627798313c9f29f9/uaa/infrastructure/uaa-app-deployment.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/foundery-rmb/kubernetes-service-discovery/b05cd65ab05abb46e965357c627798313c9f29f9/uaa/infrastructure/uaa-app-service.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/foundery-rmb/kubernetes-service-discovery/b05cd65ab05abb46e965357c627798313c9f29f9/uaa/infrastructure/uaa-db-deployment.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/foundery-rmb/kubernetes-service-discovery/b05cd65ab05abb46e965357c627798313c9f29f9/uaa/infrastructure/uaa-db-service.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/foundery-rmb/kubernetes-service-discovery/b05cd65ab05abb46e965357c627798313c9f29f9/uaa/infrastructure/uaa-pg-pv-claim.yaml	HTTP Error 404: Not Found
+https://raw.githubusercontent.com/kamdibus/RSO/f05fa421b719547fe3408ea219a5f864d6adff7c/kubernetes/consumerService/consumer-lb.yaml	HTTP Error 404: Not Found
+https://gitlab.com/opendatahub/opendatahub-operator/-/raw/1cd0ca7442e20daf1183ab875d547bbab811a6c8/deploy/kafka/kafka-admins.yaml	HTTP Error 403: Forbidden
+https://gitlab.com/opendatahub/opendatahub-operator/-/raw/1cd0ca7442e20daf1183ab875d547bbab811a6c8/deploy/kafka/operator-objects/010-ServiceAccount-strimzi-cluster-operator.yaml	HTTP Error 403: Forbidden
+https://gitlab.com/opendatahub/opendatahub-operator/-/raw/1cd0ca7442e20daf1183ab875d547bbab811a6c8/deploy/kafka/operator-objects/020-ClusterRole-strimzi-cluster-operator-role.yaml	HTTP Error 403: Forbidden
+https://gitlab.com/opendatahub/opendatahub-operator/-/raw/1cd0ca7442e20daf1183ab875d547bbab811a6c8/deploy/kafka/operator-objects/020-RoleBinding-strimzi-cluster-operator.yaml	HTTP Error 403: Forbidden
+https://gitlab.com/opendatahub/opendatahub-operator/-/raw/1cd0ca7442e20daf1183ab875d547bbab811a6c8/deploy/kafka/operator-objects/021-ClusterRole-strimzi-cluster-operator-role.yaml	HTTP Error 403: Forbidden
+https://gitlab.com/opendatahub/opendatahub-operator/-/raw/1cd0ca7442e20daf1183ab875d547bbab811a6c8/deploy/kafka/operator-objects/021-ClusterRoleBinding-strimzi-cluster-operator.yaml	HTTP Error 403: Forbidden
+https://gitlab.com/opendatahub/opendatahub-operator/-/raw/1cd0ca7442e20daf1183ab875d547bbab811a6c8/deploy/kafka/operator-objects/030-ClusterRole-strimzi-kafka-broker.yaml	HTTP Error 403: Forbidden
+https://gitlab.com/opendatahub/opendatahub-operator/-/raw/1cd0ca7442e20daf1183ab875d547bbab811a6c8/deploy/kafka/operator-objects/030-ClusterRoleBinding-strimzi-cluster-operator-kafka-broker-delegation.yaml	HTTP Error 403: Forbidden
+https://gitlab.com/opendatahub/opendatahub-operator/-/raw/1cd0ca7442e20daf1183ab875d547bbab811a6c8/deploy/kafka/operator-objects/031-ClusterRole-strimzi-entity-operator.yaml	HTTP Error 403: Forbidden
+https://gitlab.com/opendatahub/opendatahub-operator/-/raw/1cd0ca7442e20daf1183ab875d547bbab811a6c8/deploy/kafka/operator-objects/031-RoleBinding-strimzi-cluster-operator-entity-operator-delegation.yaml	HTTP Error 403: Forbidden
+https://gitlab.com/opendatahub/opendatahub-operator/-/raw/1cd0ca7442e20daf1183ab875d547bbab811a6c8/deploy/kafka/operator-objects/032-ClusterRole-strimzi-topic-operator.yaml	HTTP Error 403: Forbidden
+https://gitlab.com/opendatahub/opendatahub-operator/-/raw/1cd0ca7442e20daf1183ab875d547bbab811a6c8/deploy/kafka/operator-objects/032-RoleBinding-strimzi-cluster-operator-topic-operator-delegation.yaml	HTTP Error 403: Forbidden
+https://gitlab.com/opendatahub/opendatahub-operator/-/raw/1cd0ca7442e20daf1183ab875d547bbab811a6c8/deploy/kafka/operator-objects/050-Deployment-strimzi-cluster-operator.yaml	HTTP Error 403: Forbidden
+https://gitlab.com/opendatahub/opendatahub-operator/-/raw/2321adfcfbe6550463d350f53e973fe0494a4d8a/deploy/operator.yaml	HTTP Error 403: Forbidden
+https://gitlab.com/opendatahub/opendatahub-operator/-/raw/48f2ea5739ec84c56e9432018fe39561fddd28ed/deploy/olm-catalog/opendatahub-operator/opendatahub-operator.operatorgroup.yaml	HTTP Error 403: Forbidden
+https://gitlab.com/opendatahub/opendatahub-operator/-/raw/6321d90bbc75585c61a0cdb58cc4960e25c73487/roles/prometheus/templates/pushgateway-objects.yaml	HTTP Error 403: Forbidden
+https://gitlab.com/opendatahub/opendatahub-operator/-/raw/69c57ac8e954e1dae5d51d325ff8e3440aa8c35b/deploy/role.yaml	HTTP Error 403: Forbidden
+https://gitlab.com/opendatahub/opendatahub-operator/-/raw/72bde5ef91cd2487b6f035136cf4729b399a7fa8/deploy/seldon-user-rbac.yaml	HTTP Error 403: Forbidden
+https://gitlab.com/opendatahub/opendatahub-operator/-/raw/b1affede75f40ee6e4e1ea660c3dd47357132d0d/roles/grafana/templates/grafana.yaml	HTTP Error 403: Forbidden
+https://gitlab.com/opendatahub/opendatahub-operator/-/raw/b258ded779bee964b5db5985f082091e890f3038/deploy/argo-user-rbac.yaml	HTTP Error 403: Forbidden
+https://gitlab.com/opendatahub/opendatahub-operator/-/raw/b258ded779bee964b5db5985f082091e890f3038/deploy/argo-workflow-rbac.yaml	HTTP Error 403: Forbidden
