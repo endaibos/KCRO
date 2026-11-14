@@ -3,7 +3,7 @@
 build_abox_partitioned.py --- build a large ABox without holding one graph in memory.
 
     python src/build_abox_partitioned.py --jsonl stack/corpora/stack.jsonl \
-        --out ontology/kcro-abox-stack.nt
+        --out ontology/kcro-abox-stack-v050.nt
 
 Reference resolution in instantiate_kcro.py is already scoped to (repo, namespace):
 by_name, pods_by_label and every deferred lookup key on the repo. Building one

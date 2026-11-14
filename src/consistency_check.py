@@ -2,7 +2,7 @@
 """
 consistency_check.py --- run HermiT over the KCRO TBox plus one corpus ABox.
 
-    python src/consistency_check.py --abox ontology/kcro-abox-rahman.ttl --corpus rahman
+    python src/consistency_check.py --abox ontology/kcro-abox-rahman-v050.ttl --corpus rahman-v050
 
 A portability claim in its own right: the ontology should stay consistent under
 data it was not designed around. Records the verdict and the wall-clock time.

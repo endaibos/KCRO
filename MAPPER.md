@@ -25,9 +25,11 @@ be reasoned over (HermiT) and queried with SPARQL.
 **Run it:**
 
 ```bash
-# run from the repo root; --out defaults to ontology/kcro-abox.ttl
-.venv/bin/python src/instantiate_kcro.py --arrow data/k8s_dataset --verify
-# or:  --jsonl corpus.jsonl
+# run from the repo root. Always pass --out: the default is ontology/kcro-abox.ttl,
+# which is the released 0.3.0 graph and would be replaced.
+python src/instantiate_kcro.py --arrow data/k8s_dataset \
+    --out ontology/kcro-abox-kubeobjects-v050.ttl --verify
+# or:  --jsonl <corpus>/corpora/<corpus>.jsonl
 ```
 
 `--verify` prints per-class instance counts and the number of relators that
@@ -201,9 +203,9 @@ Then declare the class in the TBox and add it to `ANALYSIS_KEYS` in `srq3.py`.
 
 ## 7. Outputs & verification
 
-- **Output:** `kcro-abox.ttl` — Turtle ABox importing the KCRO TBox.
+- **Output:** the file given with `--out` — a Turtle ABox importing the KCRO TBox.
 - **`--verify`:** per-class distinct-individual counts + under-mediated relators.
-- **`cq_runner.py`:** runs the 12 competency questions as indexed in-memory joins
+- **`cq_runner.py`:** runs the 14 competency questions as indexed in-memory joins
   (seconds, no SPARQL blow-up) — `python src/cq_runner.py --cqs`.
 - **`srq3.py`:** full-corpus build + coverage %, triple count, per-class diff vs
   `security_analysis.json`, and the CQ pass in one report.
@@ -233,7 +235,7 @@ not the security semantics.
 
 ---
 
-## 9. AI disclosure
+## 9. AI disclosure (release 0.3.0)
 
 The mapper's scope, the Kubernetes-to-KCRO mapping decisions, and the gUFO
 modelling choices are the author's. Claude (Anthropic) was used as an assistant

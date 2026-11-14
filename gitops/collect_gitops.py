@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Build the GitOps repository corpus: the one corpus in this thesis collected rather
+Build the GitOps repository corpus: the one corpus in this work collected rather
 than reconstructed, so every step records its own provenance.
 
     python collect_gitops.py discover --target 100     # query GitHub  -> CANDIDATES.json

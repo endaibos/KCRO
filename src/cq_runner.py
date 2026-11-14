@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-cq_runner.py — run the 12 CQs WITHOUT the rdflib join blow-up, and probe the
-count mismatch. Two modes:
+cq_runner.py — run the 14 competency questions (CQ1-CQ14) WITHOUT the rdflib join
+blow-up, and probe the count mismatch. Two modes:
 
   --counts    : per-class ABox counts with an optional --raw flag that counts
                 findings BEFORE IRI dedup, so you can see exactly how much of
@@ -11,6 +11,7 @@ count mismatch. Two modes:
 
 Usage (run from the repo root; --abox defaults to ontology/kcro-abox.ttl):
   python src/cq_runner.py --cqs
+  python src/cq_runner.py --cqs --abox ontology/kcro-abox-rahman-v050.ttl --out results/cqs-rahman-v050.json
   python src/cq_runner.py --counts
 
 Needs only the ABox; the TBox is not required for counting.

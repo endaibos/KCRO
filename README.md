@@ -1,8 +1,8 @@
 # KCRO — Kubernetes Cybersecurity Research Ontology
 
-**The FAIR semantic layer over the [KubeObjects][kubeobjects] corpus: an OWL 2 DL
-ontology (KCRO), a deterministic mapping pipeline, and the resulting knowledge
-graph.**
+**A FAIR semantic layer for Kubernetes configuration security: an OWL 2 DL
+ontology (KCRO), a deterministic mapping pipeline, and knowledge graphs built from
+the [KubeObjects][kubeobjects] corpus and three further corpora.**
 
 The data side of Kubernetes-security research is solved by **KubeObjects**
 [Grella et al., 2026][kubeobjects-paper] — a large, deduplicated corpus of
@@ -15,94 +15,125 @@ the corpus into machine-reasonable facts. **This repository is that layer.**
 > corpus: the manifests remain the authoritative data source (credit and
 > provenance below); KCRO adds the ontology, the mapping, and the graph.
 
-### Versions
+## Versions
 
-This branch (`main`) **is KCRO v0.3.0** — the artefact the thesis (TScIT 45)
-evaluates: the **537,947-triple** ABox, also frozen at the
-[`v0.3.0`](https://github.com/endaibos/KCRO/releases/tag/v0.3.0) tag.
+| Version | Where | What it is |
+|---|---|---|
+| **0.3.0** | branch `main`, tag [`v0.3.0`](https://github.com/endaibos/KCRO/releases/tag/v0.3.0) | The released ontology (72 classes) and the knowledge graph built from KubeObjects (537,947 triples), as evaluated in the thesis (TScIT 45). |
+| 0.4.0 | branch `v0.4.0-provenance` | Experimental. Adds instance-level provenance (source repository, namespace) and the graph explorer. Superseded by 0.5.0, which contains it. |
+| **0.5.0-draft** | branch `v0.5.0-custom-resources` (this branch) | Extends the ontology to Kubernetes custom resources (86 classes) and evaluates it on four corpora. Not released yet. |
 
-An experimental **v0.4.0** layer — instance-level provenance (`prov:wasDerivedFrom`
-→ source repository, namespace, GitHub stars) plus an interactive GPU KG explorer —
-lives on the **`v0.4.0-provenance`** branch. It is **out of scope for the thesis**
-and kept only as a reference.
+- Persistent ontology IRI: <https://w3id.org/kcro>. It resolves to `main`, so it serves 0.3.0 until 0.5.0 is released.
+- Code and artefacts: <https://github.com/endaibos/KCRO>
+- Built on KubeObjects: <https://github.com/TheGrella/KubeObjects>
+- Licence: CC BY 4.0
 
-**v0.5.0-draft** (branch `corpus-pipeline`, unreleased) extends the ontology to
-Kubernetes custom resources and validates it on three further corpora. It adds
-`CustomResourceDefinition`, eight Flux / Argo CD delivery kinds, an open
-`CustomResource` category and two relators (86 classes in total), and declares the
-provenance terms of v0.4.0. Coverage per corpus and stage, relator resolution per
-class and the HermiT verdicts are in
-[`results/portability-table-v050.md`](results/portability-table-v050.md); the full
-record of changes is [`CHANGELOG-CORPORA.md`](CHANGELOG-CORPORA.md). The v0.3.0
-ABox `ontology/kcro-abox.ttl` is left untouched.
+### What 0.5.0 adds
 
-- 🌐 Persistent ontology IRI: **<https://w3id.org/kcro>** (resolves to this repo's `main`)
-- 📦 Code & artefacts: **<https://github.com/endaibos/KCRO>**
-- 🧱 Built on: **KubeObjects** — <https://github.com/TheGrella/KubeObjects>
-- 📄 Licence: **CC BY 4.0**
+- `CustomResourceDefinition` and an open `CustomResource` category, so objects of
+  third-party kinds are typed, not dropped.
+- Eight Flux and Argo CD delivery kinds (`HelmRelease`, `GitRepository`,
+  `ArgoApplication`, ...).
+- Two relators: `SchemaConformance` (a custom resource and the CRD that declares its
+  type) and `SourceReference` (a Flux delivery resource and the source it pulls from).
+- Declarations for the provenance terms (`prov:wasDerivedFrom`, `kcro:Repository`,
+  `kcro:namespace`).
+- Classes are selected by the pair of API group and kind, because kind names are
+  reused across projects.
+
+The 72 classes of 0.3.0 and the IRIs of their individuals are unchanged. The 0.3.0
+graph `ontology/kcro-abox.ttl` is kept as released.
+
+### Results on four corpora
+
+| Corpus | Objects | Coverage, 0.3.0 | Coverage, 0.5.0 | Original relators resolved | Graph (triples) |
+|---|---:|---:|---:|---:|---:|
+| KubeObjects | 75,340 | 80.7% | 94.7% | 99.0% | 922,805 |
+| Rahman et al. | 2,697 | 69.1% | 84.8% | 98.7% | 26,110 |
+| the-stack-yaml-k8s | 276,520 | 84.1% | 87.0% | 96.9% | 4,224,527 |
+| GitOps repositories | 16,284 | 38.3% | 83.0% | 96.5% | 92,156 |
+
+Coverage is the share of objects that KCRO assigns a class. The full figures, with
+the gain of each step, the new relators and the consistency checks, are in
+[`results/portability-table-v050.md`](results/portability-table-v050.md). How each
+corpus was obtained is in [`CHANGELOG-CORPORA.md`](CHANGELOG-CORPORA.md).
 
 ---
 
-## What's here
+## Repository layout
 
-This repository adds five things on top of the KubeObjects corpus:
+| Path | Content |
+|---|---|
+| [`ontology/kcro.ttl`](ontology/kcro.ttl) | The ontology (OWL 2 DL, 86 classes, grounded in [gUFO](http://purl.org/nemo/gufo)). |
+| [`ontology/kcro-abox.ttl`](ontology/kcro-abox.ttl) | The released 0.3.0 knowledge graph (537,947 triples). |
+| `ontology/kcro-abox-*-v050.ttl` | The 0.5.0 graphs of the Rahman and GitOps corpora. The KubeObjects and Stack graphs are too large for the repository and are rebuilt (see below). |
+| [`src/`](src/) | The mapper and the evaluation scripts (table below). |
+| [`results/`](results/) | Outputs of the evaluation. Start with [`results/README.md`](results/README.md). |
+| [`data/k8s_dataset/`](data/k8s_dataset/) | The KubeObjects corpus (Arrow, stored with Git LFS). |
+| [`rahman/`](rahman/), [`stack/`](stack/), [`gitops/`](gitops/) | One builder script per additional corpus, with its input lists and collection protocol. |
+| [`web/`](web/), [`figures/`](figures/) | The graph explorer pages and the figures. |
+| [`corpus/`](corpus/) | The KubeObjects scraper, kept from the upstream repository. |
+| [`archive/`](archive/), `*/earlier-runs/` | Superseded scripts and outputs, kept for the record. |
 
-| Artefact | File(s) | What it is |
-|---|---|---|
-| **KCRO ontology** | [`kcro.ttl`](ontology/kcro.ttl) | The OWL 2 DL TBox — **72 classes** covering Kubernetes resources, security aspects, and inter-resource relators, grounded in [gUFO](http://purl.org/nemo/gufo). Thesis: v0.3.0; current file: v0.4.0-draft (adds the provenance terms). |
-| **Knowledge graph** | [`kcro-abox.ttl`](ontology/kcro-abox.ttl) | The instantiated ABox. **Thesis-evaluated v0.3.0: 537,947 triples** (see the `v0.3.0` tag). Current v0.4.0 (with provenance): 680,035 triples / 213,708 individuals. |
-| **Mapping pipeline** | [`instantiate_kcro.py`](src/instantiate_kcro.py) | Deterministic corpus → KG mapper (gUFO `inheresIn`/`mediates` patterns, two-pass reference resolution, provenance). See [MAPPER.md](MAPPER.md). |
-| **Analysis & query tooling** | [`survey.py`](src/survey.py), [`cq_runner.py`](src/cq_runner.py), [`srq3.py`](src/srq3.py) | `survey.py` = the SRQ1 security-field analysis; `cq_runner.py` = the 12 competency-question SPARQL queries, run as fast indexed joins. |
-| **FAIR packaging** | [`kcro.ttl`](ontology/kcro.ttl), [`metadata.py`](corpus/metadata.py) | Persistent `w3id` IRI, CC BY 4.0 licence, Dublin Core / SKOS metadata in the ontology header. |
-
-Optional: an interactive **KG explorer** ([`kcro_server.py`](src/kcro_server.py) +
-the `*_visualizer.html` views) — a local SPARQL-backed browser and a GPU
-rendering of the full 210k-node graph.
-
----
-
-## What KCRO adds over KubeObjects
-
-| | KubeObjects (the corpus) | KCRO (this layer) |
-|---|---|---|
-| **Form** | Tabular manifests + repo metadata | OWL 2 DL ontology + RDF knowledge graph |
-| **Security findings** | Implicit in raw YAML fields | First-class typed individuals (e.g. `AbsentRunAsNonRoot`) inhering in their bearer |
-| **Relationships** | Not modelled | Resolved relators (`ServiceRouting`, `IdentityAssignment`, …) |
-| **Queries** | Pandas / ad-hoc | SPARQL competency questions over a reasoned graph |
-
-Coverage of the mapping in v0.3.0: **80.7 %** of corpus objects (60,774 / 75,340)
-fall into an in-scope KCRO class; the rest are the open long tail (CRDs, etc.).
-With the v0.5.0-draft extension the same corpus reaches 94.7 %.
+| Script | Purpose |
+|---|---|
+| [`instantiate_kcro.py`](src/instantiate_kcro.py) | The mapper: corpus to knowledge graph. Documented in [MAPPER.md](MAPPER.md). |
+| [`build_abox_partitioned.py`](src/build_abox_partitioned.py) | The same build, one repository group at a time, for corpora too large for memory. |
+| [`smoke_corpus.py`](src/smoke_corpus.py) | Checks a corpus file before it is mapped. |
+| [`portability_report.py`](src/portability_report.py) | Coverage and relator resolution per corpus. |
+| [`cq_runner.py`](src/cq_runner.py) | Answers the 14 competency questions. |
+| [`consistency_check.py`](src/consistency_check.py), [`consistency_by_parts.py`](src/consistency_by_parts.py) | HermiT consistency of the ontology with one graph, or with a large graph split by repository. |
+| [`survey.py`](src/survey.py), [`srq3.py`](src/srq3.py), [`verify_counts.py`](src/verify_counts.py) | The 0.3.0 analysis: security-field survey, full report, and a check that the released graph still has its published counts. |
+| [`kcro_server.py`](src/kcro_server.py), [`compute_layout.py`](src/compute_layout.py) | Local SPARQL server and layout for the graph explorer. |
 
 ---
 
 ## Reproduce
 
-Requires Python 3 and the dependencies in [`requirements.txt`](requirements.txt)
-(plus `datasets`, `rdflib`). The corpus lives in `data/k8s_dataset/` (a HuggingFace
-Arrow dataset produced by KubeObjects — see its repository to rebuild it). Run from
-the repo root; paths default to the new layout (`ontology/`, `data/`, `results/`).
+Requires Python 3 and [`requirements.txt`](requirements.txt). The consistency checks
+also need a Java runtime. Run everything from the repository root.
+
+Always pass `--out` to the mapper. Without it the mapper writes to
+`ontology/kcro-abox.ttl` and replaces the released 0.3.0 graph.
 
 ```bash
-# 1. SRQ1 — security-field analysis of the corpus   → results/security_analysis.json
-python src/survey.py --security
+# 1. Build the 0.5.0 graph of KubeObjects
+python src/instantiate_kcro.py --arrow data/k8s_dataset \
+    --out ontology/kcro-abox-kubeobjects-v050.ttl --verify
 
-# 2. Build the knowledge graph (corpus → ABox)      → ontology/kcro-abox.ttl
-python src/instantiate_kcro.py --arrow data/k8s_dataset --verify
+# 2. Coverage and relator resolution
+python src/portability_report.py --corpus kubeobjects --arrow data/k8s_dataset \
+    --abox ontology/kcro-abox-kubeobjects-v050.ttl \
+    --out results/portability-kubeobjects-v050.json
 
-# 3. Run the 12 competency questions (SRQ3)
-python src/cq_runner.py --cqs
+# 3. The 14 competency questions
+python src/cq_runner.py --cqs --abox ontology/kcro-abox-kubeobjects-v050.ttl \
+    --out results/cqs-kubeobjects-v050.json
 
-#   ...or the one-shot full report (coverage, KG size, count diff, CQs):
-python src/srq3.py --cqs
+# 4. Consistency (HermiT): a graph that ships with the repository, then KubeObjects by parts
+python src/consistency_check.py --abox ontology/kcro-abox-rahman-v050.ttl --corpus rahman-v050
+python src/consistency_by_parts.py --arrow data/k8s_dataset --corpus kubeobjects-v050
 
-# Explorer (optional): serves web/ + SPARQL over the ABox at http://localhost:8000
-python src/kcro_server.py
+# 5. Check that the released 0.3.0 graph is unchanged (reads only)
+python src/verify_counts.py
 ```
 
-`instantiate_kcro.py` is deterministic (content-addressed IRIs), so a re-run
-yields a byte-stable graph. For the mapper's architecture and how to add a new
-data source or mapping rule, see **[MAPPER.md](MAPPER.md)**.
+The three additional corpora are not stored here. They contain third-party manifests
+verbatim, and one of them includes a credential that its original author committed.
+Each is rebuilt by the script in its folder; the commands are in
+[section 8 of the changelog](CHANGELOG-CORPORA.md#8-reproduction). A rebuilt corpus is
+then mapped with `--jsonl <corpus>/corpora/<corpus>.jsonl` in place of `--arrow`.
+The GitOps corpus is pinned to commit SHAs recorded in
+[`gitops/PROTOCOL.json`](gitops/PROTOCOL.json).
+
+The mapper is deterministic: IRIs are derived from content, so a second run gives
+the same graph.
+
+To browse a graph locally:
+
+```bash
+KCRO_ABOX=ontology/kcro-abox-gitops-v050.ttl python src/kcro_server.py   # http://localhost:8000
+```
 
 ---
 
@@ -133,13 +164,13 @@ corpus:
 > published MSR proceedings entry (`@inproceedings`, DOI `10.1145/3793302.3793317`)
 > rather than this GitHub-URL form.
 
-- **Ontology IRI:** <https://w3id.org/kcro> (persistent; resolves to the repo's `main`)
+- **Ontology IRI:** <https://w3id.org/kcro>
 - **Author:** A. Dorneanu, University of Twente
 - **Licence:** [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 
 ---
 
-## AI use statement
+## AI use statement (release 0.3.0)
 
 The scope, design decisions, ontology engineering, and literature grounding of
 KCRO are the author's. Claude (Anthropic) was used as an assistant for: ontology
@@ -153,5 +184,5 @@ HermiT in Protégé, and the generated knowledge graph was validated against the
 SRQ1 survey counts (`--verify` / `security_analysis.json`).
 
 [kubeobjects]: https://github.com/TheGrella/KubeObjects
-[kubeobjects-paper]: https://github.com/TheGrella/KubeObjects
+[kubeobjects-paper]: https://doi.org/10.1145/3793302.3793317
 [kubeobjects-repo]: https://github.com/TheGrella/KubeObjects

@@ -1,9 +1,22 @@
 # Corpus pipeline changelog
 
-Covers everything from the start of the Rahman reconstruction (2026-09-22) through
-the three-corpus build and viewer verification (2026-09-27). Written as a record of
-what changed and why, so the methodology sections and a reviewer's questions can be
-answered from one place.
+A dated record of what changed and why, from the start of the Rahman reconstruction
+(2026-09-22) to the 0.5.0-draft extension (2026-11-12). It is a work log, kept so that
+a reviewer's questions about method can be answered from one place. For the results
+themselves, read [results/portability-table-v050.md](results/portability-table-v050.md).
+
+How to read it:
+
+- Sections 1 to 6 describe the first round (state on 2026-09-27): three new corpora,
+  mapped with the 17 kinds of 0.3.0. Its outputs are now in `results/earlier-runs/`
+  and `ontology/earlier-runs/`, so file paths in these sections refer to files that
+  have since moved there.
+- Section 7 describes the second round: the extension to custom resources. It was
+  done in steps, and the log names them S1 (add `CustomResourceDefinition`), S1b (a
+  correction for kinds that share a name with a native kind), S3 (add the Flux and
+  Argo CD kinds) and S2 (add the open `CustomResource` category). They were run in
+  the order S1, S1b, S3, S2.
+- Section 8 gives the commands that rebuild each corpus.
 
 Environment for every figure below: macOS (darwin 25.6.0), Python 3.14.2 in
 `.venv`, rdflib 7.6.0, PyYAML 6.0.3, datasets 4.8.5.
@@ -215,7 +228,7 @@ triples (108). The stack ABox was not built — it is roughly 100× the rahman c
 
 ```bash
 cd .kg_explorer_v030
-KCRO_ABOX=../ontology/kcro-abox-gitops.ttl python src/kcro_server.py   # then :8000
+KCRO_ABOX=../ontology/earlier-runs/kcro-abox-gitops.ttl python src/kcro_server.py   # then :8000
 ```
 
 | | gitops | rahman |
@@ -237,12 +250,10 @@ corpus would reach that scale.
 ## 7. Second round: portability study and the v0.5.0-draft extension
 
 Sections 1 to 6 describe the state on 2026-09-27. Everything below came after, on
-branch `corpus-pipeline`. Figures are in
+branch `v0.5.0-custom-resources`. Figures are in
 [results/portability-table-v050.md](results/portability-table-v050.md).
 
-**Tooling restored.** A conda-forge `git` (`/opt/anaconda3/envs/gittools/bin/git`)
-replaces the Xcode shim, so the work is committed. `src/compute_layout.py` was
-recovered from history.
+**Tooling restored.** `src/compute_layout.py` was recovered from history.
 
 **Regression guard.** The Arrow path reads `repo_full_name`, which exists and is never
 null (3,006 repositories), so the repo-key bug of section 3 never touched a published
@@ -340,7 +351,7 @@ python collect_gitops.py build --out corpora/gitops.jsonl --min-manifests 10
 # validate, then ingest
 python src/smoke_corpus.py <corpus>/corpora/<corpus>.jsonl [--sample N]
 python src/instantiate_kcro.py --jsonl <corpus>/corpora/<corpus>.jsonl \
-    --out ontology/kcro-abox-<corpus>.ttl --verify
+    --out ontology/kcro-abox-<corpus>-v050.ttl --verify
 ```
 
 Use `.venv/bin/python` if the shell's `python` is not the project venv — anaconda's

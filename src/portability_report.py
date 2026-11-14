@@ -8,10 +8,10 @@ cover, and how that interacts with relator resolution. This produces both, per
 corpus, as JSON plus one Markdown table row.
 
     python src/portability_report.py --corpus rahman \
-        --jsonl rahman/corpora/rahman.jsonl --abox ontology/kcro-abox-rahman.ttl
+        --jsonl rahman/corpora/rahman.jsonl --abox ontology/kcro-abox-rahman-v050.ttl
     python src/portability_report.py --corpus kubeobjects \
-        --arrow data/k8s_dataset --abox ontology/kcro-abox.ttl
-    python src/portability_report.py --table results/portability-*.json
+        --arrow data/k8s_dataset --abox ontology/kcro-abox-kubeobjects-v050.ttl
+    python src/portability_report.py --table results/portability-*-v050.json
 
 Counting logic is reused, not restated: the class census counts distinct
 rdf:type subjects, which is exactly the quantity KCROGraph.add_type() maintains
